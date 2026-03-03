@@ -153,16 +153,17 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4">
-      <div className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-lg w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4" role="dialog" aria-modal="true" aria-label={task ? `Edit task: ${task.title}` : 'Create new task'}>
+      <div className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-xl w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-mc-border flex-shrink-0">
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-semibold truncate pr-4">
             {task ? task.title : 'Create New Task'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-mc-bg-tertiary rounded"
+            className="p-2 hover:bg-mc-bg-tertiary rounded-lg transition-colors flex-shrink-0"
+            aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
@@ -170,14 +171,17 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
 
         {/* Tabs - only show for existing tasks */}
         {task && (
-          <div className="flex border-b border-mc-border flex-shrink-0 overflow-x-auto">
+          <div className="flex border-b border-mc-border flex-shrink-0 overflow-x-auto" role="tablist" aria-label="Task details tabs">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                aria-controls={`panel-${tab.id}`}
                 className={`flex items-center gap-2 px-4 min-h-11 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'text-mc-accent border-b-2 border-mc-accent'
+                    ? 'text-tm-brand border-b-2 border-tm-brand'
                     : 'text-mc-text-secondary hover:text-mc-text'
                 }`}
               >
@@ -201,8 +205,9 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               required
-              className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+              className="w-full min-h-11 bg-mc-bg border border-mc-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
               placeholder="What needs to be done?"
+              maxLength={500}
             />
           </div>
 
@@ -213,7 +218,7 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={3}
-              className="w-full bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent resize-none"
+              className="w-full bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 resize-none transition-colors"
               placeholder="Add details..."
             />
           </div>
@@ -250,7 +255,7 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as TaskStatus })}
-                className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+                className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
               >
                 {statuses.map((s) => (
                   <option key={s} value={s}>
@@ -266,7 +271,7 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
               <select
                 value={form.priority}
                 onChange={(e) => setForm({ ...form, priority: e.target.value as TaskPriority })}
-                className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+                className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
               >
                 {priorities.map((p) => (
                   <option key={p} value={p}>
@@ -289,7 +294,7 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
                   setForm({ ...form, assigned_agent_id: e.target.value });
                 }
               }}
-              className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+              className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
             >
               <option value="">Unassigned</option>
               {agents.map((agent) => (
@@ -310,7 +315,7 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
               type="datetime-local"
               value={form.due_date}
               onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-              className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+              className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
             />
           </div>
             </form>
@@ -368,7 +373,7 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="min-h-11 flex items-center gap-2 px-4 py-2 bg-mc-accent text-mc-bg rounded text-sm font-medium hover:bg-mc-accent/90 disabled:opacity-50"
+                className="min-h-11 flex items-center gap-2 px-4 py-2 bg-tm-brand text-white rounded-lg text-sm font-medium hover:bg-tm-brand-dark disabled:opacity-50 transition-colors shadow-glow-sm"
               >
                 <Save className="w-4 h-4" />
                 {isSubmitting ? 'Saving...' : 'Save'}

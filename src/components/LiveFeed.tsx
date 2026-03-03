@@ -30,32 +30,41 @@ export function LiveFeed({ mobileMode = false, isPortrait = true }: LiveFeedProp
 
   return (
     <aside
-      className={`bg-mc-bg-secondary ${mobileMode ? 'border border-mc-border rounded-lg h-full' : 'border-l border-mc-border'} flex flex-col transition-all duration-300 ease-in-out ${
+      role="complementary"
+      aria-label="Live event feed"
+      className={`bg-mc-bg-secondary ${mobileMode ? 'border border-mc-border rounded-xl h-full' : 'border-l border-mc-border'} flex flex-col transition-all duration-300 ease-in-out ${
         effectiveMinimized ? 'w-12' : mobileMode ? 'w-full' : 'w-80'
       }`}
     >
       <div className="p-3 border-b border-mc-border">
-        <div className="flex items-center">
+        <div className="flex items-center gap-1">
           {!mobileMode && (
             <button
               onClick={toggleMinimize}
-              className="p-1 rounded hover:bg-mc-bg-tertiary text-mc-text-secondary hover:text-mc-text transition-colors"
+              className="p-1.5 rounded-lg hover:bg-mc-bg-tertiary text-mc-text-secondary hover:text-mc-text transition-colors"
               aria-label={effectiveMinimized ? 'Expand feed' : 'Minimize feed'}
             >
               {effectiveMinimized ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </button>
           )}
-          {!effectiveMinimized && <span className="text-sm font-medium uppercase tracking-wider">Live Feed</span>}
+          {!effectiveMinimized && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium uppercase tracking-wider">Live Feed</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-mc-accent-green animate-pulse" aria-label="Live" />
+            </div>
+          )}
         </div>
 
         {!effectiveMinimized && (
-          <div className={`mt-3 ${mobileMode && isPortrait ? 'grid grid-cols-3 gap-2' : 'flex gap-1'}`}>
+          <div className={`mt-3 ${mobileMode && isPortrait ? 'grid grid-cols-3 gap-2' : 'flex gap-1'}`} role="tablist" aria-label="Filter events">
             {(['all', 'tasks', 'agents'] as FeedFilter[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
-                className={`min-h-11 text-xs rounded uppercase ${mobileMode && isPortrait ? 'px-1' : 'px-3'} ${
-                  filter === tab ? 'bg-mc-accent text-mc-bg font-medium' : 'text-mc-text-secondary hover:bg-mc-bg-tertiary'
+                role="tab"
+                aria-selected={filter === tab}
+                className={`min-h-11 text-xs rounded-lg uppercase transition-colors ${mobileMode && isPortrait ? 'px-1' : 'px-3'} ${
+                  filter === tab ? 'bg-tm-brand text-white font-medium' : 'text-mc-text-secondary hover:bg-mc-bg-tertiary'
                 }`}
               >
                 {tab}
@@ -66,7 +75,7 @@ export function LiveFeed({ mobileMode = false, isPortrait = true }: LiveFeedProp
       </div>
 
       {!effectiveMinimized && (
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+        <div className="flex-1 overflow-y-auto p-2 space-y-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]" role="log" aria-live="polite" aria-label="Event feed">
           {filteredEvents.length === 0 ? (
             <div className="text-center py-8 text-mc-text-secondary text-sm">No events yet</div>
           ) : (
@@ -81,24 +90,15 @@ export function LiveFeed({ mobileMode = false, isPortrait = true }: LiveFeedProp
 function EventItem({ event }: { event: Event }) {
   const getEventIcon = (type: string) => {
     switch (type) {
-      case 'task_created':
-        return '📋';
-      case 'task_assigned':
-        return '👤';
-      case 'task_status_changed':
-        return '🔄';
-      case 'task_completed':
-        return '✅';
-      case 'message_sent':
-        return '💬';
-      case 'agent_joined':
-        return '🎉';
-      case 'agent_status_changed':
-        return '🔔';
-      case 'system':
-        return '⚙️';
-      default:
-        return '📌';
+      case 'task_created': return '📋';
+      case 'task_assigned': return '👤';
+      case 'task_status_changed': return '🔄';
+      case 'task_completed': return '✅';
+      case 'message_sent': return '💬';
+      case 'agent_joined': return '🎉';
+      case 'agent_status_changed': return '🔔';
+      case 'system': return '⚙️';
+      default: return '📌';
     }
   };
 
@@ -106,21 +106,22 @@ function EventItem({ event }: { event: Event }) {
   const isHighlight = event.type === 'task_created' || event.type === 'task_completed';
 
   return (
-    <div
-      className={`p-2 rounded border-l-2 animate-slide-in ${
-        isHighlight ? 'bg-mc-bg-tertiary border-mc-accent-pink' : 'bg-transparent border-transparent hover:bg-mc-bg-tertiary'
+    <article
+      className={`p-2.5 rounded-lg border-l-2 animate-slide-in ${
+        isHighlight ? 'bg-mc-bg-tertiary/70 border-tm-brand' : 'bg-transparent border-transparent hover:bg-mc-bg-tertiary/50'
       }`}
+      aria-label={`${event.type.replace(/_/g, ' ')}: ${event.message}`}
     >
       <div className="flex items-start gap-2">
-        <span className="text-sm">{getEventIcon(event.type)}</span>
+        <span className="text-sm flex-shrink-0" role="img" aria-hidden="true">{getEventIcon(event.type)}</span>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm ${isTaskEvent ? 'text-mc-accent-pink' : 'text-mc-text'}`}>{event.message}</p>
+          <p className={`text-sm leading-snug ${isTaskEvent ? 'text-mc-accent-pink' : 'text-mc-text'}`}>{event.message}</p>
           <div className="flex items-center gap-1 mt-1 text-xs text-mc-text-secondary">
-            <Clock className="w-3 h-3" />
-            {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
+            <Clock className="w-3 h-3" aria-hidden="true" />
+            <time dateTime={event.created_at}>{formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}</time>
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

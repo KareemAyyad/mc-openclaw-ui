@@ -194,9 +194,11 @@ export default function WorkspacePage() {
   if (isLoading || !workspace) {
     return (
       <div className="min-h-screen bg-mc-bg flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-pulse">🦞</div>
-          <p className="text-mc-text-secondary">Loading {slug}...</p>
+        <div className="text-center animate-fade-in">
+          <div className="w-12 h-12 rounded-xl tm-gradient flex items-center justify-center mx-auto mb-4 shadow-glow animate-pulse">
+            <ListTodo className="w-6 h-6 text-white" />
+          </div>
+          <p className="text-mc-text-secondary text-sm">Loading {slug}...</p>
         </div>
       </div>
     );

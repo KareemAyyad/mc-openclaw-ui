@@ -114,7 +114,9 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
 
   return (
     <aside
-      className={`bg-mc-bg-secondary ${mobileMode ? 'border border-mc-border rounded-lg h-full' : 'border-r border-mc-border'} flex flex-col transition-all duration-300 ease-in-out ${
+      role="complementary"
+      aria-label="AI Teammates"
+      className={`bg-mc-bg-secondary ${mobileMode ? 'border border-mc-border rounded-xl h-full' : 'border-r border-mc-border'} flex flex-col transition-all duration-300 ease-in-out ${
         effectiveMinimized ? 'w-12' : mobileMode ? 'w-full' : 'w-64'
       }`}
     >
@@ -131,7 +133,7 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
           )}
           {!effectiveMinimized && (
             <>
-              <span className="text-sm font-medium uppercase tracking-wider">Agents</span>
+              <span className="text-sm font-medium uppercase tracking-wider">Teammates</span>
               <span className="bg-mc-bg-tertiary text-mc-text-secondary text-xs px-2 py-0.5 rounded ml-2">{agents.length}</span>
             </>
           )}
@@ -154,8 +156,8 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
                 <button
                   key={tab}
                   onClick={() => setFilter(tab)}
-                  className={`min-h-11 text-xs rounded uppercase ${mobileMode && isPortrait ? 'px-1' : 'px-3'} ${
-                    filter === tab ? 'bg-mc-accent text-mc-bg font-medium' : 'text-mc-text-secondary hover:bg-mc-bg-tertiary'
+                  className={`min-h-11 text-xs rounded-lg uppercase transition-colors ${mobileMode && isPortrait ? 'px-1' : 'px-3'} ${
+                    filter === tab ? 'bg-tm-brand text-white font-medium' : 'text-mc-text-secondary hover:bg-mc-bg-tertiary'
                   }`}
                 >
                   {tab}

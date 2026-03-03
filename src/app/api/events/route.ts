@@ -55,13 +55,33 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Valid event types
+const VALID_EVENT_TYPES = [
+  'task_created', 'task_assigned', 'task_status_changed', 'task_completed',
+  'message_sent', 'agent_status_changed', 'agent_joined', 'system',
+];
+
 // POST /api/events - Create a manual event
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    if (!body.type || !body.message) {
-      return NextResponse.json({ error: 'Type and message are required' }, { status: 400 });
+    if (!body.type || typeof body.type !== 'string') {
+      return NextResponse.json({ error: 'type is required and must be a string' }, { status: 400 });
+    }
+
+    if (!body.message || typeof body.message !== 'string') {
+      return NextResponse.json({ error: 'message is required and must be a string' }, { status: 400 });
+    }
+
+    // Validate event type
+    if (!VALID_EVENT_TYPES.includes(body.type)) {
+      return NextResponse.json({ error: `Invalid event type. Must be one of: ${VALID_EVENT_TYPES.join(', ')}` }, { status: 400 });
+    }
+
+    // Validate message length
+    if (body.message.length > 5000) {
+      return NextResponse.json({ error: 'Message must be 5000 characters or fewer' }, { status: 400 });
     }
 
     const id = uuidv4();
