@@ -15,6 +15,7 @@ export function getDb(): Database.Database {
     db = new Database(DB_PATH);
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
+    db.pragma('busy_timeout = 5000');
 
     // Initialize base schema (creates tables if they don't exist)
     db.exec(schema);
@@ -57,6 +58,15 @@ export function transaction<T>(fn: () => T): T {
   const db = getDb();
   return db.transaction(fn)();
 }
+
+// Graceful shutdown: close DB on process termination
+function handleShutdown() {
+  console.log('[DB] Shutting down, closing database...');
+  closeDb();
+}
+
+process.on('SIGTERM', handleShutdown);
+process.on('SIGINT', handleShutdown);
 
 // Export migration utilities for CLI use
 export { runMigrations, getMigrationStatus } from './migrations';

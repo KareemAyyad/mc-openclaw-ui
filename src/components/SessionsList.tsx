@@ -7,6 +7,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Bot, CheckCircle, Circle, XCircle, Trash2, Check } from 'lucide-react';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 interface SessionWithAgent {
   id: string;
@@ -30,6 +31,7 @@ interface SessionsListProps {
 export function SessionsList({ taskId }: SessionsListProps) {
   const [sessions, setSessions] = useState<SessionWithAgent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
 
   const loadSessions = useCallback(async () => {
     try {
@@ -109,7 +111,6 @@ export function SessionsList({ taskId }: SessionsListProps) {
   };
 
   const handleDelete = async (sessionId: string) => {
-    if (!confirm('Delete this sub-agent session?')) return;
     try {
       const res = await fetch(`/api/openclaw/sessions/${sessionId}`, {
         method: 'DELETE',
@@ -203,7 +204,7 @@ export function SessionsList({ taskId }: SessionsListProps) {
               </button>
             )}
             <button
-              onClick={() => handleDelete(session.openclaw_session_id)}
+              onClick={() => setDeleteSessionId(session.openclaw_session_id)}
               className="p-1.5 hover:bg-mc-bg-tertiary rounded-lg text-mc-accent-red transition-colors"
               aria-label={`Delete ${session.agent_name || 'session'}`}
             >
@@ -212,6 +213,19 @@ export function SessionsList({ taskId }: SessionsListProps) {
           </div>
         </div>
       ))}
+      {deleteSessionId !== null && (
+        <ConfirmDialog
+          title="Delete Session"
+          message="Delete this sub-agent session? This action cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={() => {
+            handleDelete(deleteSessionId);
+            setDeleteSessionId(null);
+          }}
+          onCancel={() => setDeleteSessionId(null)}
+          destructive
+        />
+      )}
     </div>
   );
 }

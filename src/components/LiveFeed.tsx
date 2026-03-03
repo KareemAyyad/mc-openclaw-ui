@@ -75,7 +75,7 @@ export function LiveFeed({ mobileMode = false, isPortrait = true }: LiveFeedProp
       </div>
 
       {!effectiveMinimized && (
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]" role="log" aria-live="polite" aria-label="Event feed">
+        <div className="flex-1 overflow-y-auto p-2 space-y-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]" role="log" aria-live="polite" aria-label="Live event feed">
           {filteredEvents.length === 0 ? (
             <div className="text-center py-8 text-mc-text-secondary text-sm">No events yet</div>
           ) : (

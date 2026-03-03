@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { X, Save, Trash2, Activity, Package, Bot, ClipboardList, Plus } from 'lucide-react';
 import { useMissionControl } from '@/lib/store';
 import { triggerAutoDispatch, shouldTriggerAutoDispatch } from '@/lib/auto-dispatch';
+import { toast } from '@/lib/toast-store';
+import { ConfirmDialog } from './ConfirmDialog';
 import { ActivityLog } from './ActivityLog';
 import { DeliverablesList } from './DeliverablesList';
 import { SessionsList } from './SessionsList';
@@ -24,8 +26,19 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAgentModal, setShowAgentModal] = useState(false);
   const [usePlanningMode, setUsePlanningMode] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   // Auto-switch to planning tab if task is in planning status
   const [activeTab, setActiveTab] = useState<TabType>(task?.status === 'planning' ? 'planning' : 'overview');
+
+  // Close on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !showDeleteConfirm && !showAgentModal) onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, showDeleteConfirm, showAgentModal]);
 
   // Stable callback for when spec is locked - use window.location.reload() to refresh data
   const handleSpecLocked = useCallback(() => {
@@ -43,6 +56,12 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate title
+    if (!form.title.trim()) {
+      setErrors({ title: 'Title is required' });
+      return;
+    }
+    setErrors({});
     setIsSubmitting(true);
 
     try {
@@ -69,6 +88,7 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
 
         if (task) {
           updateTask(savedTask);
+          toast.success('Task updated');
 
           // Check if auto-dispatch should be triggered and execute it
           if (shouldTriggerAutoDispatch(task.status, savedTask.status, savedTask.assigned_agent_id)) {
@@ -81,13 +101,14 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
             });
 
             if (!result.success) {
-              console.error('Auto-dispatch failed:', result.error);
+              toast.warning(`Auto-dispatch failed: ${result.error}`);
             }
           }
 
           onClose();
         } else {
           addTask(savedTask);
+          toast.success(`Task "${savedTask.title}" created`);
           addEvent({
             id: crypto.randomUUID(),
             type: 'task_created',
@@ -120,13 +141,15 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
       }
     } catch (error) {
       console.error('Failed to save task:', error);
+      toast.error('Failed to save task');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!task || !confirm(`Delete "${task.title}"?`)) return;
+    if (!task) return;
+    setShowDeleteConfirm(false);
 
     try {
       const res = await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' });
@@ -134,10 +157,14 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
         useMissionControl.setState((state) => ({
           tasks: state.tasks.filter((t) => t.id !== task.id),
         }));
+        toast.success(`Task "${task.title}" deleted`);
         onClose();
+      } else {
+        toast.error('Failed to delete task');
       }
     } catch (error) {
       console.error('Failed to delete task:', error);
+      toast.error('Failed to delete task');
     }
   };
 
@@ -153,11 +180,11 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4" role="dialog" aria-modal="true" aria-label={task ? `Edit task: ${task.title}` : 'Create new task'}>
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
       <div className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-xl w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-mc-border flex-shrink-0">
-          <h2 className="text-lg font-semibold truncate pr-4">
+          <h2 id="task-modal-title" className="text-lg font-semibold truncate pr-4">
             {task ? task.title : 'Create New Task'}
           </h2>
           <button
@@ -203,12 +230,15 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
             <input
               type="text"
               value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              onChange={(e) => { setForm({ ...form, title: e.target.value }); setErrors(prev => ({ ...prev, title: '' })); }}
               required
-              className="w-full min-h-11 bg-mc-bg border border-mc-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
+              className={`w-full min-h-11 bg-mc-bg border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors ${errors.title ? 'border-mc-accent-red' : 'border-mc-border'}`}
               placeholder="What needs to be done?"
               maxLength={500}
+              aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? 'title-error' : undefined}
             />
+            {errors.title && <p id="title-error" className="text-xs text-mc-accent-red mt-1">{errors.title}</p>}
           </div>
 
           {/* Description */}
@@ -353,7 +383,7 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
                 <>
                   <button
                     type="button"
-                    onClick={handleDelete}
+                    onClick={() => setShowDeleteConfirm(true)}
                     className="min-h-11 flex items-center gap-2 px-3 py-2 text-mc-accent-red hover:bg-mc-accent-red/10 rounded text-sm"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -393,6 +423,17 @@ export function TaskModal({ task, onClose, workspaceId }: TaskModalProps) {
             setForm({ ...form, assigned_agent_id: agentId });
             setShowAgentModal(false);
           }}
+        />
+      )}
+
+      {showDeleteConfirm && task && (
+        <ConfirmDialog
+          title={`Delete "${task.title}"?`}
+          message="This task and all its activities, deliverables, and sessions will be permanently removed."
+          confirmLabel="Delete Task"
+          destructive
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
         />
       )}
     </div>

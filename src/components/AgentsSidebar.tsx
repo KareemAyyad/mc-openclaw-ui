@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, ChevronRight, ChevronLeft, Zap, ZapOff, Loader2, Search } from 'lucide-react';
 import { useMissionControl } from '@/lib/store';
+import { useVisibleInterval } from '@/hooks/useVisibility';
+import { toast } from '@/lib/toast-store';
 import type { Agent, AgentStatus, OpenClawSession } from '@/lib/types';
 import { AgentModal } from './AgentModal';
 import { DiscoverAgentsModal } from './DiscoverAgentsModal';
@@ -50,23 +52,23 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
     }
   }, [loadOpenClawSessions, agents.length]);
 
-  useEffect(() => {
-    const loadSubAgentCount = async () => {
-      try {
-        const res = await fetch('/api/openclaw/sessions?session_type=subagent&status=active');
-        if (res.ok) {
-          const sessions = await res.json();
-          setActiveSubAgents(sessions.length);
-        }
-      } catch (error) {
-        console.error('Failed to load sub-agent count:', error);
+  const loadSubAgentCount = useCallback(async () => {
+    try {
+      const res = await fetch('/api/openclaw/sessions?session_type=subagent&status=active');
+      if (res.ok) {
+        const sessions = await res.json();
+        setActiveSubAgents(sessions.length);
       }
-    };
-
-    loadSubAgentCount();
-    const interval = setInterval(loadSubAgentCount, 30000);
-    return () => clearInterval(interval);
+    } catch (error) {
+      console.error('Failed to load sub-agent count:', error);
+    }
   }, []);
+
+  // Initial load
+  useEffect(() => { loadSubAgentCount(); }, [loadSubAgentCount]);
+
+  // Poll only when tab is visible
+  useVisibleInterval(loadSubAgentCount, 30000);
 
   const handleConnectToOpenClaw = async (agent: Agent, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -88,7 +90,7 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
         } else {
           const error = await res.json();
           console.error('Failed to connect to OpenClaw:', error);
-          alert(`Failed to connect: ${error.error || 'Unknown error'}`);
+          toast.error(`Failed to connect: ${error.error || 'Unknown error'}`);
         }
       }
     } catch (error) {

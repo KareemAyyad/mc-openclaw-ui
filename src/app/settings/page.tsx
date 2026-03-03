@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Settings, Save, RotateCcw, FolderOpen, Link as LinkIcon, ChevronLeft, Cpu, Shield, Info } from 'lucide-react';
 import { getConfig, updateConfig, resetConfig, type MissionControlConfig } from '@/lib/config';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -277,30 +278,15 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Reset Confirmation Modal */}
       {showResetConfirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4" onClick={() => setShowResetConfirm(false)} role="dialog" aria-modal="true" aria-label="Confirm reset settings">
-          <div className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-xl w-full max-w-sm p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-6" onClick={e => e.stopPropagation()}>
-            <h3 className="font-semibold text-lg mb-2">Reset Settings?</h3>
-            <p className="text-sm text-mc-text-secondary mb-6">
-              All settings will be restored to their default values. This cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowResetConfirm(false)}
-                className="min-h-11 px-4 py-2 text-mc-text-secondary hover:text-mc-text rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReset}
-                className="min-h-11 px-4 py-2 bg-mc-accent-red text-white rounded-lg font-medium hover:bg-mc-accent-red/90 transition-colors"
-              >
-                Reset to Defaults
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Reset Settings"
+          message="Reset all settings to defaults? This cannot be undone."
+          confirmLabel="Reset"
+          onConfirm={handleReset}
+          onCancel={() => setShowResetConfirm(false)}
+          destructive
+        />
       )}
     </div>
   );

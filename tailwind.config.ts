@@ -6,23 +6,24 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // Teammates.ai refined dark theme — modern, premium, 2026
-        'mc-bg': '#0a0e14',
-        'mc-bg-secondary': '#12161e',
-        'mc-bg-tertiary': '#1a1f2b',
-        'mc-border': '#262d3a',
-        'mc-text': '#d4dae5',
-        'mc-text-secondary': '#7a8599',
-        'mc-accent': '#4f8ff7',
-        'mc-accent-green': '#34d07a',
-        'mc-accent-yellow': '#e5a821',
-        'mc-accent-red': '#f04d4d',
-        'mc-accent-purple': '#9b6dff',
-        'mc-accent-pink': '#e05599',
-        'mc-accent-cyan': '#22c997',
+        // Colors are driven by CSS variables so the theme can be toggled
+        'mc-bg': 'var(--mc-bg)',
+        'mc-bg-secondary': 'var(--mc-bg-secondary)',
+        'mc-bg-tertiary': 'var(--mc-bg-tertiary)',
+        'mc-border': 'var(--mc-border)',
+        'mc-text': 'var(--mc-text)',
+        'mc-text-secondary': 'var(--mc-text-secondary)',
+        'mc-accent': 'var(--mc-accent)',
+        'mc-accent-green': 'var(--mc-accent-green)',
+        'mc-accent-yellow': 'var(--mc-accent-yellow)',
+        'mc-accent-red': 'var(--mc-accent-red)',
+        'mc-accent-purple': 'var(--mc-accent-purple)',
+        'mc-accent-pink': 'var(--mc-accent-pink)',
+        'mc-accent-cyan': 'var(--mc-accent-cyan)',
         // Teammates.ai brand color
         'tm-brand': '#4f8ff7',
         'tm-brand-light': '#7aadff',

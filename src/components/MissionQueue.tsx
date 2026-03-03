@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, ChevronRight, GripVertical, ArrowRightLeft, Clock } from 'lucide-react';
 import { useMissionControl } from '@/lib/store';
 import { triggerAutoDispatch, shouldTriggerAutoDispatch } from '@/lib/auto-dispatch';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { Task, TaskStatus } from '@/lib/types';
 import { TaskModal } from './TaskModal';
+import { EmptyState } from './EmptyState';
 import { formatDistanceToNow } from 'date-fns';
 
 interface MissionQueueProps {
@@ -33,11 +35,23 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
   const [mobileStatus, setMobileStatus] = useState<TaskStatus>('planning');
   const [statusMoveTask, setStatusMoveTask] = useState<Task | null>(null);
 
+  // Keyboard shortcuts: N = new task, Escape = close modals
+  const shortcuts = useMemo(() => [
+    { key: 'n', handler: () => { if (!showCreateModal && !editingTask) setShowCreateModal(true); }, description: 'New task' },
+    { key: 'Escape', handler: () => {
+      if (statusMoveTask) setStatusMoveTask(null);
+      else if (editingTask) setEditingTask(null);
+      else if (showCreateModal) setShowCreateModal(false);
+    }, description: 'Close modal' },
+  ], [showCreateModal, editingTask, statusMoveTask]);
+  useKeyboardShortcuts(shortcuts);
+
   const getTasksByStatus = (status: TaskStatus) => tasks.filter((task) => task.status === status);
 
   const updateTaskStatusWithPersist = async (task: Task, targetStatus: TaskStatus) => {
     if (task.status === targetStatus) return;
 
+    const previousStatus = task.status;
     updateTaskStatus(task.id, targetStatus);
 
     try {
@@ -47,32 +61,38 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
         body: JSON.stringify({ status: targetStatus }),
       });
 
-      if (res.ok) {
-        addEvent({
-          id: crypto.randomUUID(),
-          type: targetStatus === 'done' ? 'task_completed' : 'task_status_changed',
-          task_id: task.id,
-          message: `Task "${task.title}" moved to ${targetStatus}`,
-          created_at: new Date().toISOString(),
+      if (!res.ok) {
+        // Rollback optimistic update on server error
+        console.error('Failed to update task status, rolling back');
+        updateTaskStatus(task.id, previousStatus);
+        return;
+      }
+
+      addEvent({
+        id: crypto.randomUUID(),
+        type: targetStatus === 'done' ? 'task_completed' : 'task_status_changed',
+        task_id: task.id,
+        message: `Task "${task.title}" moved to ${targetStatus}`,
+        created_at: new Date().toISOString(),
+      });
+
+      if (shouldTriggerAutoDispatch(previousStatus, targetStatus, task.assigned_agent_id)) {
+        const result = await triggerAutoDispatch({
+          taskId: task.id,
+          taskTitle: task.title,
+          agentId: task.assigned_agent_id,
+          agentName: task.assigned_agent?.name || 'Unknown Agent',
+          workspaceId: task.workspace_id,
         });
 
-        if (shouldTriggerAutoDispatch(task.status, targetStatus, task.assigned_agent_id)) {
-          const result = await triggerAutoDispatch({
-            taskId: task.id,
-            taskTitle: task.title,
-            agentId: task.assigned_agent_id,
-            agentName: task.assigned_agent?.name || 'Unknown Agent',
-            workspaceId: task.workspace_id,
-          });
-
-          if (!result.success) {
-            console.error('Auto-dispatch failed:', result.error);
-          }
+        if (!result.success) {
+          console.error('Auto-dispatch failed:', result.error);
         }
       }
     } catch (error) {
+      // Rollback optimistic update on network error
       console.error('Failed to update task status:', error);
-      updateTaskStatus(task.id, task.status);
+      updateTaskStatus(task.id, previousStatus);
     }
   };
 
@@ -199,8 +219,13 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
 
           <div id={`tasks-${mobileStatus}`} role="tabpanel" className={`min-w-0 ${isPortrait ? 'space-y-3' : 'space-y-2'}`}>
             {mobileTasks.length === 0 ? (
-              <div className="text-sm text-mc-text-secondary bg-mc-bg-secondary border border-mc-border rounded-xl p-6 text-center">
-                No tasks in this status.
+              <div className="bg-mc-bg-secondary border border-mc-border rounded-xl">
+                <EmptyState
+                  icon="📋"
+                  title="No tasks here"
+                  description={`No tasks in ${mobileStatus.replace('_', ' ')} status`}
+                  action={{ label: 'New Task', onClick: () => setShowCreateModal(true) }}
+                />
               </div>
             ) : (
               mobileTasks.map((task) => (

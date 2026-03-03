@@ -20,14 +20,14 @@ setInterval(() => {
   }
 }, 60_000);
 
-interface RateLimitConfig {
+export interface RateLimitConfig {
   /** Maximum requests allowed in the window */
   maxRequests: number;
   /** Window size in milliseconds */
   windowMs: number;
 }
 
-interface RateLimitResult {
+export interface RateLimitResult {
   allowed: boolean;
   remaining: number;
   resetAt: number;
@@ -85,10 +85,16 @@ export function getClientIP(request: Request): string {
 export const RATE_LIMITS = {
   /** Standard API: 60 requests per minute */
   standard: { maxRequests: 60, windowMs: 60_000 },
+  /** General API: 100 requests per minute */
+  api: { maxRequests: 100, windowMs: 60_000 },
   /** Write operations: 30 requests per minute */
   write: { maxRequests: 30, windowMs: 60_000 },
+  /** Webhook endpoints: 30 requests per minute */
+  webhook: { maxRequests: 30, windowMs: 60_000 },
   /** File operations: 20 requests per minute */
   fileOps: { maxRequests: 20, windowMs: 60_000 },
   /** Auth-sensitive: 10 requests per minute */
   strict: { maxRequests: 10, windowMs: 60_000 },
+  /** SSE connections: 5 per minute */
+  sse: { maxRequests: 5, windowMs: 60_000 },
 } as const;
