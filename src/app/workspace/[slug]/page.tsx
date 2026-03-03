@@ -329,7 +329,7 @@ function MobileSettingsPanel({ workspace, denseLandscape = false }: { workspace:
         <Link href="/settings" className="w-full min-h-11 px-4 rounded-lg border border-mc-border bg-mc-bg-secondary flex items-center justify-between text-sm">
           <span className="flex items-center gap-2">
             <SettingsIcon className="w-4 h-4" />
-            Open Mission Control Settings
+            Open Settings
           </span>
           <ExternalLink className="w-4 h-4 text-mc-text-secondary" />
         </Link>

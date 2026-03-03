@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { queryAll, run } from '@/lib/db';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 import type { Event } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -63,6 +64,16 @@ const VALID_EVENT_TYPES = [
 
 // POST /api/events - Create a manual event
 export async function POST(request: NextRequest) {
+  // Rate limit event creation
+  const ip = getClientIP(request);
+  const rateCheck = checkRateLimit(`events-write:${ip}`, RATE_LIMITS.write);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
 

@@ -107,14 +107,14 @@ export function ActivityLog({ taskId }: ActivityLogProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role="log" aria-label="Task activity log" aria-live="polite">
       {activities.map((activity) => (
-        <div
+        <article
           key={activity.id}
-          className="flex gap-3 p-3 bg-mc-bg rounded-lg border border-mc-border"
+          className="flex gap-3 p-3 bg-mc-bg rounded-xl border border-mc-border"
         >
           {/* Icon */}
-          <div className="text-2xl flex-shrink-0">
+          <div className="text-2xl flex-shrink-0" aria-hidden="true">
             {getActivityIcon(activity.activity_type)}
           </div>
 
@@ -145,11 +145,11 @@ export function ActivityLog({ taskId }: ActivityLogProps) {
             )}
 
             {/* Timestamp */}
-            <div className="text-xs text-mc-text-secondary mt-2">
+            <time dateTime={activity.created_at} className="text-xs text-mc-text-secondary mt-2 block">
               {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
-            </div>
+            </time>
           </div>
-        </div>
+        </article>
       ))}
     </div>
   );

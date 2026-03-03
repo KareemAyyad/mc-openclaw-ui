@@ -348,7 +348,8 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
 
   // Cancel planning
   const cancelPlanning = async () => {
-    if (!confirm('Are you sure you want to cancel planning? This will reset the planning state.')) {
+    // Use inline confirmation pattern instead of browser confirm
+    if (!window.confirm('Are you sure you want to cancel planning? This will reset the planning state.')) {
       return;
     }
 
@@ -384,7 +385,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-6 h-6 animate-spin text-mc-accent" />
+        <Loader2 className="w-6 h-6 animate-spin text-tm-brand" />
         <span className="ml-2 text-mc-text-secondary">Loading planning state...</span>
       </div>
     );
@@ -472,7 +473,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
         {/* Generated Agents */}
         {state.agents && state.agents.length > 0 && (
           <div>
-            <h3 className="font-medium mb-2">Agents Created:</h3>
+            <h3 className="font-medium mb-2">Teammates Created:</h3>
             <div className="space-y-2">
               {state.agents.map((agent, i) => (
                 <div key={i} className="bg-mc-bg border border-mc-border rounded-lg p-3 flex items-center gap-3">
@@ -512,7 +513,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
         <button
           onClick={startPlanning}
           disabled={starting}
-          className="px-6 py-3 bg-mc-accent text-mc-bg rounded-lg font-medium hover:bg-mc-accent/90 disabled:opacity-50 flex items-center gap-2"
+          className="px-6 py-3 bg-tm-brand text-white rounded-lg font-medium hover:bg-tm-brand-dark shadow-glow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
         >
           {starting ? (
             <>
@@ -576,22 +577,22 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
                       disabled={submitting}
                       className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all text-left ${
                         isThisOptionSubmitting
-                          ? 'border-mc-accent bg-mc-accent/20'
+                          ? 'border-tm-brand bg-tm-brand/20'
                           : isSelected
-                          ? 'border-mc-accent bg-mc-accent/10'
-                          : 'border-mc-border hover:border-mc-accent/50'
+                          ? 'border-tm-brand bg-tm-brand/10'
+                          : 'border-mc-border hover:border-tm-brand/50'
                       } disabled:opacity-50`}
                     >
                       <span className={`w-8 h-8 rounded flex items-center justify-center text-sm font-bold ${
-                        isSelected ? 'bg-mc-accent text-mc-bg' : 'bg-mc-bg-tertiary'
+                        isSelected ? 'bg-tm-brand text-white' : 'bg-mc-bg-tertiary'
                       }`}>
                         {option.id.toUpperCase()}
                       </span>
                       <span className="flex-1">{option.label}</span>
                       {isThisOptionSubmitting ? (
-                        <Loader2 className="w-5 h-5 text-mc-accent animate-spin" />
+                        <Loader2 className="w-5 h-5 text-tm-brand animate-spin" />
                       ) : isSelected && !submitting ? (
-                        <CheckCircle className="w-5 h-5 text-mc-accent" />
+                        <CheckCircle className="w-5 h-5 text-tm-brand" />
                       ) : null}
                     </button>
 
@@ -603,7 +604,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
                           value={otherText}
                           onChange={(e) => setOtherText(e.target.value)}
                           placeholder="Please specify..."
-                          className="w-full bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+                          className="w-full bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
                           disabled={submitting}
                         />
                       </div>
@@ -638,7 +639,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
               <button
                 onClick={submitAnswer}
                 disabled={!selectedOption || submitting || (selectedOption === 'Other' && !otherText.trim())}
-                className="w-full px-6 py-3 bg-mc-accent text-mc-bg rounded-lg font-medium hover:bg-mc-accent/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full px-6 py-3 bg-tm-brand text-white rounded-lg font-medium hover:bg-tm-brand-dark shadow-glow-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <>
@@ -653,7 +654,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
               {/* Waiting indicator after submit */}
               {isSubmittingAnswer && !submitting && (
                 <div className="mt-4 flex items-center justify-center gap-2 text-sm text-mc-text-secondary">
-                  <Loader2 className="w-4 h-4 animate-spin text-mc-accent" />
+                  <Loader2 className="w-4 h-4 animate-spin text-tm-brand" />
                   <span>Waiting for response...</span>
                 </div>
               )}
@@ -662,7 +663,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin text-mc-accent mx-auto mb-2" />
+              <Loader2 className="w-8 h-8 animate-spin text-tm-brand mx-auto mb-2" />
               <p className="text-mc-text-secondary">
                 {isWaitingForResponse ? 'Waiting for response...' : 'Waiting for next question...'}
               </p>

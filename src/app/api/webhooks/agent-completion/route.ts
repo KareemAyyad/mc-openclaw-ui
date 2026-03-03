@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { createHmac } from 'crypto';
 import { queryOne, queryAll, run } from '@/lib/db';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 import type { Task, Agent, OpenClawSession } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -44,6 +45,16 @@ function verifyWebhookSignature(signature: string, rawBody: string): boolean {
  * }
  */
 export async function POST(request: NextRequest) {
+  // Rate limit webhook calls
+  const ip = getClientIP(request);
+  const rateCheck = checkRateLimit(`webhook:${ip}`, RATE_LIMITS.write);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    );
+  }
+
   try {
     // Read raw body for signature verification
     const rawBody = await request.text();

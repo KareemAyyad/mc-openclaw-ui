@@ -129,14 +129,15 @@ export function DeliverablesList({ taskId }: DeliverablesListProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role="list" aria-label="Task deliverables">
       {deliverables.map((deliverable) => (
         <div
           key={deliverable.id}
-          className="flex gap-3 p-3 bg-mc-bg rounded-lg border border-mc-border hover:border-mc-accent transition-colors"
+          role="listitem"
+          className="flex gap-3 p-3 bg-mc-bg rounded-xl border border-mc-border hover:border-tm-brand transition-colors"
         >
           {/* Icon */}
-          <div className="flex-shrink-0 text-mc-accent">
+          <div className="flex-shrink-0 text-tm-brand" aria-hidden="true">
             {getDeliverableIcon(deliverable.deliverable_type)}
           </div>
 
@@ -149,7 +150,7 @@ export function DeliverablesList({ taskId }: DeliverablesListProps) {
                   href={deliverable.path}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-mc-accent hover:text-mc-accent/80 hover:underline flex items-center gap-1.5"
+                  className="font-medium text-tm-brand hover:text-tm-brand-light hover:underline flex items-center gap-1.5"
                 >
                   {deliverable.title}
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -172,7 +173,7 @@ export function DeliverablesList({ taskId }: DeliverablesListProps) {
                 {deliverable.path && (
                   <button
                     onClick={() => handleOpen(deliverable)}
-                    className="flex-shrink-0 p-1.5 hover:bg-mc-bg-tertiary rounded text-mc-accent"
+                    className="flex-shrink-0 p-1.5 hover:bg-mc-bg-tertiary rounded-lg text-tm-brand transition-colors"
                     title={deliverable.deliverable_type === 'url' ? 'Open URL' : 'Reveal in Finder'}
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -195,7 +196,7 @@ export function DeliverablesList({ taskId }: DeliverablesListProps) {
                   href={deliverable.path}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 p-2 bg-mc-bg-tertiary rounded text-xs text-mc-accent hover:text-mc-accent/80 font-mono break-all block hover:bg-mc-bg-tertiary/80"
+                  className="mt-2 p-2 bg-mc-bg-tertiary rounded-lg text-xs text-tm-brand hover:text-tm-brand-light font-mono break-all block hover:bg-mc-bg-tertiary/80 transition-colors"
                 >
                   {deliverable.path}
                 </a>

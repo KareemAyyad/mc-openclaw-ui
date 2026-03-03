@@ -121,22 +121,23 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
   const availableCount = agents.filter((a) => !a.already_imported).length;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4">
-      <div className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-lg w-full max-w-2xl max-h-[88vh] sm:max-h-[80vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4">
+      <div role="dialog" aria-modal="true" aria-label="Discover Gateway Teammates" className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-xl w-full max-w-2xl max-h-[88vh] sm:max-h-[80vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-mc-border">
           <div>
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Search className="w-5 h-5 text-mc-accent" />
-              Discover Gateway Agents
+              <Search className="w-5 h-5 text-tm-brand" />
+              Discover Gateway Teammates
             </h2>
             <p className="text-sm text-mc-text-secondary mt-1">
-              Import existing agents from the OpenClaw Gateway
+              Import existing teammates from the OpenClaw Gateway
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-mc-bg-tertiary rounded"
+            aria-label="Close"
+            className="p-2 hover:bg-mc-bg-tertiary rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -146,23 +147,23 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
         <div className="flex-1 overflow-y-auto p-4">
           {loading && (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-mc-accent mr-3" />
-              <span className="text-mc-text-secondary">Discovering agents from Gateway...</span>
+              <Loader2 className="w-6 h-6 animate-spin text-tm-brand mr-3" />
+              <span className="text-mc-text-secondary">Discovering teammates from Gateway...</span>
             </div>
           )}
 
           {error && (
-            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg mb-4">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-              <span className="text-sm text-red-400">{error}</span>
+            <div role="alert" className="flex items-center gap-3 p-4 bg-mc-accent-red/10 border border-mc-accent-red/20 rounded-xl mb-4">
+              <AlertCircle className="w-5 h-5 text-mc-accent-red flex-shrink-0" />
+              <span className="text-sm text-mc-accent-red">{error}</span>
             </div>
           )}
 
           {importResult && (
-            <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg mb-4">
-              <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
-              <span className="text-sm text-green-400">
-                Imported {importResult.imported} agent{importResult.imported !== 1 ? 's' : ''}
+            <div role="status" className="flex items-center gap-3 p-4 bg-mc-accent-green/10 border border-mc-accent-green/20 rounded-xl mb-4">
+              <Check className="w-5 h-5 text-mc-accent-green flex-shrink-0" />
+              <span className="text-sm text-mc-accent-green">
+                Imported {importResult.imported} teammate{importResult.imported !== 1 ? 's' : ''}
                 {importResult.skipped > 0 && ` (${importResult.skipped} skipped)`}
               </span>
             </div>
@@ -170,8 +171,8 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
 
           {!loading && !error && agents.length === 0 && (
             <div className="text-center py-12 text-mc-text-secondary">
-              <p>No agents found in the Gateway.</p>
-              <p className="text-sm mt-2">Make sure the OpenClaw Gateway is running and has agents configured.</p>
+              <p>No teammates found in the Gateway.</p>
+              <p className="text-sm mt-2">Make sure the OpenClaw Gateway is running and has teammates configured.</p>
             </div>
           )}
 
@@ -180,7 +181,7 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
               {/* Selection controls */}
               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <span className="text-sm text-mc-text-secondary">
-                  {agents.length} agent{agents.length !== 1 ? 's' : ''} found
+                  {agents.length} teammate{agents.length !== 1 ? 's' : ''} found
                   {availableCount < agents.length && ` · ${agents.length - availableCount} already imported`}
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -195,7 +196,7 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
                     <>
                       <button
                         onClick={selectAllAvailable}
-                        className="min-h-11 px-3 py-2 text-xs text-mc-accent hover:bg-mc-accent/10 rounded"
+                        className="min-h-11 px-3 py-2 text-xs text-tm-brand hover:bg-tm-brand/10 rounded-lg transition-colors"
                       >
                         Select All
                       </button>
@@ -223,7 +224,7 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
                         isImported
                           ? 'border-mc-border/50 bg-mc-bg/50 opacity-60'
                           : isSelected
-                          ? 'border-mc-accent/50 bg-mc-accent/5'
+                          ? 'border-tm-brand/50 bg-tm-brand/5'
                           : 'border-mc-border hover:border-mc-border/80 hover:bg-mc-bg-tertiary cursor-pointer'
                       }`}
                       onClick={() => !isImported && toggleSelection(agent.id)}
@@ -234,7 +235,7 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
                           isImported
                             ? 'border-green-500/50 bg-green-500/20'
                             : isSelected
-                            ? 'border-mc-accent bg-mc-accent'
+                            ? 'border-tm-brand bg-tm-brand'
                             : 'border-mc-border'
                         }`}
                       >
@@ -286,7 +287,7 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
             <button
               onClick={handleImport}
               disabled={selectedIds.size === 0 || importing}
-              className="min-h-11 flex items-center gap-2 px-4 py-2 bg-mc-accent text-mc-bg rounded text-sm font-medium hover:bg-mc-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-11 flex items-center gap-2 px-4 py-2 bg-tm-brand text-white rounded-lg text-sm font-medium hover:bg-tm-brand-dark disabled:opacity-50 disabled:cursor-not-allowed shadow-glow-sm transition-colors"
             >
               {importing ? (
                 <>

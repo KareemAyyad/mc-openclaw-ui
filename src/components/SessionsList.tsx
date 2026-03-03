@@ -54,7 +54,7 @@ export function SessionsList({ taskId }: SessionsListProps) {
       case 'active':
         return <Circle className="w-4 h-4 text-green-500 fill-current animate-pulse" />;
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-mc-accent" />;
+        return <CheckCircle className="w-4 h-4 text-tm-brand" />;
       case 'failed':
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
@@ -140,18 +140,19 @@ export function SessionsList({ taskId }: SessionsListProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role="list" aria-label="Sub-agent sessions">
       {sessions.map((session) => (
         <div
           key={session.id}
-          className="flex gap-3 p-3 bg-mc-bg rounded-lg border border-mc-border"
+          role="listitem"
+          className="flex gap-3 p-3 bg-mc-bg rounded-xl border border-mc-border"
         >
           {/* Agent Avatar */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0" aria-hidden="true">
             {session.agent_avatar_emoji ? (
               <span className="text-2xl">{session.agent_avatar_emoji}</span>
             ) : (
-              <Bot className="w-8 h-8 text-mc-accent" />
+              <Bot className="w-8 h-8 text-tm-brand" />
             )}
           </div>
 
@@ -195,16 +196,16 @@ export function SessionsList({ taskId }: SessionsListProps) {
             {session.status === 'active' && (
               <button
                 onClick={() => handleMarkComplete(session.openclaw_session_id)}
-                className="p-1.5 hover:bg-mc-bg-tertiary rounded text-green-500"
-                title="Mark as complete"
+                className="p-1.5 hover:bg-mc-bg-tertiary rounded-lg text-mc-accent-green transition-colors"
+                aria-label={`Mark ${session.agent_name || 'session'} as complete`}
               >
                 <Check className="w-4 h-4" />
               </button>
             )}
             <button
               onClick={() => handleDelete(session.openclaw_session_id)}
-              className="p-1.5 hover:bg-mc-bg-tertiary rounded text-red-500"
-              title="Delete session"
+              className="p-1.5 hover:bg-mc-bg-tertiary rounded-lg text-mc-accent-red transition-colors"
+              aria-label={`Delete ${session.agent_name || 'session'}`}
             >
               <Trash2 className="w-4 h-4" />
             </button>

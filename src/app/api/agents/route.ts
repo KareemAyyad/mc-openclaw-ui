@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { queryAll, queryOne, run } from '@/lib/db';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 import type { Agent, CreateAgentRequest } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -28,11 +29,32 @@ export async function GET(request: NextRequest) {
 
 // POST /api/agents - Create a new agent
 export async function POST(request: NextRequest) {
+  // Rate limit write operations
+  const ip = getClientIP(request);
+  const rateCheck = checkRateLimit(`agents-write:${ip}`, RATE_LIMITS.write);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body: CreateAgentRequest = await request.json();
 
-    if (!body.name || !body.role) {
-      return NextResponse.json({ error: 'Name and role are required' }, { status: 400 });
+    if (!body.name || typeof body.name !== 'string' || !body.role || typeof body.role !== 'string') {
+      return NextResponse.json({ error: 'Name (string) and role (string) are required' }, { status: 400 });
+    }
+
+    // Validate field lengths
+    if (body.name.length > 100) {
+      return NextResponse.json({ error: 'Name must be 100 characters or less' }, { status: 400 });
+    }
+    if (body.role.length > 200) {
+      return NextResponse.json({ error: 'Role must be 200 characters or less' }, { status: 400 });
+    }
+    if (body.description && body.description.length > 2000) {
+      return NextResponse.json({ error: 'Description must be 2000 characters or less' }, { status: 400 });
     }
 
     const id = uuidv4();

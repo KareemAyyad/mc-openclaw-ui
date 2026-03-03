@@ -95,8 +95,15 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
     }
   };
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const handleDelete = async () => {
-    if (!agent || !confirm(`Delete ${agent.name}?`)) return;
+    if (!agent) return;
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      return;
+    }
+    setShowDeleteConfirm(false);
 
     try {
       const res = await fetch(`/api/agents/${agent.id}`, { method: 'DELETE' });
@@ -121,30 +128,34 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
   ] as const;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4">
-      <div className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-lg w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4">
+      <div role="dialog" aria-modal="true" aria-label={agent ? `Edit ${agent.name}` : 'Create new teammate'} className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-xl w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-mc-border">
           <h2 className="text-lg font-semibold">
-            {agent ? `Edit ${agent.name}` : 'Create New Agent'}
+            {agent ? `Edit ${agent.name}` : 'Create New Teammate'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-mc-bg-tertiary rounded"
+            aria-label="Close"
+            className="p-2 hover:bg-mc-bg-tertiary rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-mc-border overflow-x-auto">
+        <div className="flex border-b border-mc-border overflow-x-auto" role="tablist" aria-label="Teammate configuration tabs">
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`tabpanel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 min-h-11 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'border-mc-accent text-mc-accent'
+                  ? 'border-tm-brand text-tm-brand'
                   : 'border-transparent text-mc-text-secondary hover:text-mc-text'
               }`}
             >
@@ -160,15 +171,18 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
               {/* Avatar Selection */}
               <div>
                 <label className="block text-sm font-medium mb-2">Avatar</label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Select avatar">
                   {EMOJI_OPTIONS.map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
+                      role="radio"
+                      aria-checked={form.avatar_emoji === emoji}
+                      aria-label={`Avatar ${emoji}`}
                       onClick={() => setForm({ ...form, avatar_emoji: emoji })}
-                      className={`text-2xl p-2 rounded hover:bg-mc-bg-tertiary ${
+                      className={`text-2xl p-2 rounded-lg hover:bg-mc-bg-tertiary transition-colors ${
                         form.avatar_emoji === emoji
-                          ? 'bg-mc-accent/20 ring-2 ring-mc-accent'
+                          ? 'bg-tm-brand/20 ring-2 ring-tm-brand'
                           : ''
                       }`}
                     >
@@ -186,7 +200,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
-                  className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+                  className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
                   placeholder="Agent name"
                 />
               </div>
@@ -199,7 +213,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                   value={form.role}
                   onChange={(e) => setForm({ ...form, role: e.target.value })}
                   required
-                  className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+                  className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
                   placeholder="e.g., Code & Automation"
                 />
               </div>
@@ -222,7 +236,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value as AgentStatus })}
-                  className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+                  className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
                 >
                   <option value="standby">Standby</option>
                   <option value="working">Working</option>
@@ -258,7 +272,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                   <select
                     value={form.model}
                     onChange={(e) => setForm({ ...form, model: e.target.value })}
-                    className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+                    className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
                   >
                     <option value="">-- Use Default Model --</option>
                     {availableModels.map((model) => (
@@ -325,28 +339,48 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
         <div className="flex items-center justify-between p-4 border-t border-mc-border">
           <div>
             {agent && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="min-h-11 flex items-center gap-2 px-3 py-2 text-mc-accent-red hover:bg-mc-accent-red/10 rounded text-sm"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
+              showDeleteConfirm ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-mc-accent-red">Delete {agent.name}?</span>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    className="min-h-11 px-3 py-2 bg-mc-accent-red text-white rounded-lg text-sm font-medium"
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="min-h-11 px-3 py-2 text-sm text-mc-text-secondary hover:text-mc-text"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="min-h-11 flex items-center gap-2 px-3 py-2 text-mc-accent-red hover:bg-mc-accent-red/10 rounded-lg text-sm transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+              )
             )}
           </div>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="min-h-11 px-4 py-2 text-sm text-mc-text-secondary hover:text-mc-text"
+              className="min-h-11 px-4 py-2 text-sm text-mc-text-secondary hover:text-mc-text transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="min-h-11 flex items-center gap-2 px-4 py-2 bg-mc-accent text-mc-bg rounded text-sm font-medium hover:bg-mc-accent/90 disabled:opacity-50"
+              className="min-h-11 flex items-center gap-2 px-4 py-2 bg-tm-brand text-white rounded-lg text-sm font-medium hover:bg-tm-brand-dark disabled:opacity-50 shadow-glow-sm transition-colors"
             >
               <Save className="w-4 h-4" />
               {isSubmitting ? 'Saving...' : 'Save'}
