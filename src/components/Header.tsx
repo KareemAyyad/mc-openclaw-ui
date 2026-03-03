@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Zap, Settings, ChevronLeft, LayoutGrid } from 'lucide-react';
+import { Zap, Settings, ChevronLeft, LayoutGrid, Sun, Moon } from 'lucide-react';
 import { useMissionControl } from '@/lib/store';
+import { useVisibility, useVisibleInterval } from '@/hooks/useVisibility';
+import { useTheme } from '@/hooks/useTheme';
 import { format } from 'date-fns';
 import type { Workspace } from '@/lib/types';
 
@@ -16,31 +18,31 @@ interface HeaderProps {
 export function Header({ workspace, isPortrait = true }: HeaderProps) {
   const router = useRouter();
   const { agents, tasks, isOnline } = useMissionControl();
+  const { theme, toggleTheme } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeSubAgents, setActiveSubAgents] = useState(0);
+  const isVisible = useVisibility();
 
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  // Only update clock when tab is visible
+  useVisibleInterval(() => setCurrentTime(new Date()), 1000);
 
-  useEffect(() => {
-    const loadSubAgentCount = async () => {
-      try {
-        const res = await fetch('/api/openclaw/sessions?session_type=subagent&status=active');
-        if (res.ok) {
-          const sessions = await res.json();
-          setActiveSubAgents(sessions.length);
-        }
-      } catch (error) {
-        console.error('Failed to load sub-agent count:', error);
+  const loadSubAgentCount = useCallback(async () => {
+    try {
+      const res = await fetch('/api/openclaw/sessions?session_type=subagent&status=active');
+      if (res.ok) {
+        const sessions = await res.json();
+        setActiveSubAgents(sessions.length);
       }
-    };
-
-    loadSubAgentCount();
-    const interval = setInterval(loadSubAgentCount, 30000);
-    return () => clearInterval(interval);
+    } catch (error) {
+      console.error('Failed to load sub-agent count:', error);
+    }
   }, []);
+
+  // Initial load
+  useEffect(() => { loadSubAgentCount(); }, [loadSubAgentCount]);
+
+  // Poll only when tab is visible
+  useVisibleInterval(loadSubAgentCount, 30000);
 
   const workingAgents = agents.filter((a) => a.status === 'working').length;
   const activeAgents = workingAgents + activeSubAgents;
@@ -68,6 +70,9 @@ export function Header({ workspace, isPortrait = true }: HeaderProps) {
               </div>
             </div>
 
+            <button onClick={toggleTheme} className="min-h-11 min-w-11 p-2 hover:bg-mc-bg-tertiary rounded text-mc-text-secondary shrink-0" title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} aria-label="Toggle theme">
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             <button onClick={() => router.push('/settings')} className="min-h-11 min-w-11 p-2 hover:bg-mc-bg-tertiary rounded text-mc-text-secondary shrink-0" title="Settings">
               <Settings className="w-5 h-5" />
             </button>
@@ -150,6 +155,9 @@ export function Header({ workspace, isPortrait = true }: HeaderProps) {
               <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-mc-accent-green animate-pulse' : 'bg-mc-accent-red'}`} />
               {isOnline ? 'ONLINE' : 'OFFLINE'}
             </div>
+            <button onClick={toggleTheme} className="min-h-11 min-w-11 p-2 hover:bg-mc-bg-tertiary rounded text-mc-text-secondary" title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} aria-label="Toggle theme">
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <button onClick={() => router.push('/settings')} className="min-h-11 min-w-11 p-2 hover:bg-mc-bg-tertiary rounded text-mc-text-secondary" title="Settings">
               <Settings className="w-5 h-5" />
             </button>

@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark theme (default) */
 :root {
   --mc-bg: #0d1117;
   --mc-bg-secondary: #161b22;
@@ -16,6 +17,23 @@
   --mc-accent-purple: #a371f7;
   --mc-accent-pink: #db61a2;
   --mc-accent-cyan: #39d353;
+}
+
+/* Light theme */
+[data-theme='light'] {
+  --mc-bg: #ffffff;
+  --mc-bg-secondary: #f6f8fa;
+  --mc-bg-tertiary: #e1e4e8;
+  --mc-border: #d0d7de;
+  --mc-text: #24292f;
+  --mc-text-secondary: #57606a;
+  --mc-accent: #0969da;
+  --mc-accent-green: #1a7f37;
+  --mc-accent-yellow: #9a6700;
+  --mc-accent-red: #cf222e;
+  --mc-accent-purple: #8250df;
+  --mc-accent-pink: #bf3989;
+  --mc-accent-cyan: #1a7f37;
 }
 
 * {

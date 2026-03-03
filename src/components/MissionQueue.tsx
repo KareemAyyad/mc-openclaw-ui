@@ -37,6 +37,7 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
   const updateTaskStatusWithPersist = async (task: Task, targetStatus: TaskStatus) => {
     if (task.status === targetStatus) return;
 
+    const previousStatus = task.status;
     updateTaskStatus(task.id, targetStatus);
 
     try {
@@ -46,32 +47,38 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
         body: JSON.stringify({ status: targetStatus }),
       });
 
-      if (res.ok) {
-        addEvent({
-          id: crypto.randomUUID(),
-          type: targetStatus === 'done' ? 'task_completed' : 'task_status_changed',
-          task_id: task.id,
-          message: `Task "${task.title}" moved to ${targetStatus}`,
-          created_at: new Date().toISOString(),
+      if (!res.ok) {
+        // Rollback optimistic update on server error
+        console.error('Failed to update task status, rolling back');
+        updateTaskStatus(task.id, previousStatus);
+        return;
+      }
+
+      addEvent({
+        id: crypto.randomUUID(),
+        type: targetStatus === 'done' ? 'task_completed' : 'task_status_changed',
+        task_id: task.id,
+        message: `Task "${task.title}" moved to ${targetStatus}`,
+        created_at: new Date().toISOString(),
+      });
+
+      if (shouldTriggerAutoDispatch(previousStatus, targetStatus, task.assigned_agent_id)) {
+        const result = await triggerAutoDispatch({
+          taskId: task.id,
+          taskTitle: task.title,
+          agentId: task.assigned_agent_id,
+          agentName: task.assigned_agent?.name || 'Unknown Agent',
+          workspaceId: task.workspace_id,
         });
 
-        if (shouldTriggerAutoDispatch(task.status, targetStatus, task.assigned_agent_id)) {
-          const result = await triggerAutoDispatch({
-            taskId: task.id,
-            taskTitle: task.title,
-            agentId: task.assigned_agent_id,
-            agentName: task.assigned_agent?.name || 'Unknown Agent',
-            workspaceId: task.workspace_id,
-          });
-
-          if (!result.success) {
-            console.error('Auto-dispatch failed:', result.error);
-          }
+        if (!result.success) {
+          console.error('Auto-dispatch failed:', result.error);
         }
       }
     } catch (error) {
+      // Rollback optimistic update on network error
       console.error('Failed to update task status:', error);
-      updateTaskStatus(task.id, task.status);
+      updateTaskStatus(task.id, previousStatus);
     }
   };
 
@@ -200,7 +207,7 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
       {editingTask && <TaskModal task={editingTask} onClose={() => setEditingTask(null)} workspaceId={workspaceId} />}
 
       {mobileMode && statusMoveTask && (
-        <div className="fixed inset-0 z-50 bg-black/60 p-4 flex items-end sm:items-center sm:justify-center" onClick={() => setStatusMoveTask(null)}>
+        <div className="fixed inset-0 z-50 bg-black/60 p-4 flex items-end sm:items-center sm:justify-center" role="dialog" aria-modal="true" aria-label="Move task status" onClick={() => setStatusMoveTask(null)}>
           <div
             className="w-full sm:max-w-md bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-xl p-4"
             onClick={(e) => e.stopPropagation()}
