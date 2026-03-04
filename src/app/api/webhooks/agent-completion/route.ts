@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { queryOne, queryAll, run } from '@/lib/db';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 import type { Task, Agent, OpenClawSession } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 /**
- * Verify HMAC-SHA256 signature of webhook request
+ * Verify HMAC-SHA256 signature of webhook request using timing-safe comparison.
  */
 function verifyWebhookSignature(signature: string, rawBody: string): boolean {
   const webhookSecret = process.env.WEBHOOK_SECRET;
-  
+
   if (!webhookSecret) {
     // Dev mode - skip validation
     return true;
@@ -24,7 +25,11 @@ function verifyWebhookSignature(signature: string, rawBody: string): boolean {
     .update(rawBody)
     .digest('hex');
 
-  return signature === expectedSignature;
+  // Use timing-safe comparison to prevent timing attacks
+  if (signature.length !== expectedSignature.length) {
+    return false;
+  }
+  return timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
 }
 
 /**
@@ -44,6 +49,16 @@ function verifyWebhookSignature(signature: string, rawBody: string): boolean {
  * }
  */
 export async function POST(request: NextRequest) {
+  // Rate limit webhook calls
+  const ip = getClientIP(request);
+  const rateCheck = checkRateLimit(`webhook:${ip}`, RATE_LIMITS.write);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    );
+  }
+
   try {
     // Read raw body for signature verification
     const rawBody = await request.text();

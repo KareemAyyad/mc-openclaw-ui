@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { X, Save, Trash2 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useMissionControl } from '@/lib/store';
+import { toast } from '@/lib/toast-store';
+import { ConfirmDialog } from './ConfirmDialog';
 import type { Agent, AgentStatus } from '@/lib/types';
 
 interface AgentModalProps {
@@ -13,8 +14,7 @@ interface AgentModalProps {
   onAgentCreated?: (agentId: string) => void;
 }
 
-import { AgentAvatar, AVAILABLE_AVATARS } from '@/components/AgentAvatar';
-
+const EMOJI_OPTIONS = ['🤖', '🦞', '💻', '🔍', '✍️', '🎨', '📊', '🧠', '⚡', '🚀', '🎯', '🔧'];
 
 export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: AgentModalProps) {
   const { addAgent, updateAgent, agents } = useMissionControl();
@@ -23,12 +23,14 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [defaultModel, setDefaultModel] = useState<string>('');
   const [modelsLoading, setModelsLoading] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState({
     name: agent?.name || '',
     role: agent?.role || '',
     description: agent?.description || '',
-    avatar_emoji: agent?.avatar_emoji || 'Bot',
+    avatar_emoji: agent?.avatar_emoji || '🤖',
     status: agent?.status || 'standby' as AgentStatus,
     is_master: agent?.is_master || false,
     soul_md: agent?.soul_md || '',
@@ -60,8 +62,26 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
     loadModels();
   }, [agent]);
 
+  // Close on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !showDeleteConfirm) onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, showDeleteConfirm]);
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!form.name.trim()) newErrors.name = 'Name is required';
+    if (!form.role.trim()) newErrors.role = 'Role is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setIsSubmitting(true);
 
     try {
@@ -81,37 +101,46 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
         const savedAgent = await res.json();
         if (agent) {
           updateAgent(savedAgent);
+          toast.success(`Agent "${savedAgent.name}" updated`);
         } else {
           addAgent(savedAgent);
-          // Notify parent if callback provided (e.g., for inline agent creation)
+          toast.success(`Agent "${savedAgent.name}" created`);
           if (onAgentCreated) {
             onAgentCreated(savedAgent.id);
           }
         }
         onClose();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error || 'Failed to save agent');
       }
     } catch (error) {
       console.error('Failed to save agent:', error);
+      toast.error('Failed to save agent');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!agent || !confirm(`Delete ${agent.name}?`)) return;
+    if (!agent) return;
+    setShowDeleteConfirm(false);
 
     try {
       const res = await fetch(`/api/agents/${agent.id}`, { method: 'DELETE' });
       if (res.ok) {
-        // Remove from store
         useMissionControl.setState((state) => ({
           agents: state.agents.filter((a) => a.id !== agent.id),
           selectedAgent: state.selectedAgent?.id === agent.id ? null : state.selectedAgent,
         }));
+        toast.success(`Agent "${agent.name}" deleted`);
         onClose();
+      } else {
+        toast.error('Failed to delete agent');
       }
     } catch (error) {
       console.error('Failed to delete agent:', error);
+      toast.error('Failed to delete agent');
     }
   };
 
@@ -123,37 +152,36 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
   ] as const;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-3 sm:p-4 animate-fade-in">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="glass-panel border-white/10 rounded-t-2xl sm:rounded-2xl w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
-      >
-        <div className="h-1 w-full bg-gradient-to-r from-mc-accent-purple via-mc-accent-cyan to-mc-accent-purple opacity-50 block" />
-
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="agent-modal-title">
+      <div className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-xl w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/[0.02]">
-          <h2 className="text-lg font-semibold">
-            {agent ? `Edit ${agent.name}` : 'Create New Agent'}
+        <div className="flex items-center justify-between p-4 border-b border-mc-border">
+          <h2 id="agent-modal-title" className="text-lg font-semibold">
+            {agent ? `Edit ${agent.name}` : 'Create New Teammate'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Close"
+            className="p-2 hover:bg-mc-bg-tertiary rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/5 bg-white/[0.01] overflow-x-auto hide-scrollbar">
+        <div className="flex border-b border-mc-border overflow-x-auto" role="tablist" aria-label="Teammate configuration tabs">
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`tabpanel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 min-h-11 py-2 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === tab.id
-                ? 'border-mc-accent-cyan text-mc-accent-cyan [text-shadow:0_0_10px_rgba(34,211,238,0.5)] bg-white/5'
-                : 'border-transparent text-mc-text-secondary hover:text-mc-text hover:bg-white/5'
-                }`}
+              className={`px-4 min-h-11 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'border-tm-brand text-tm-brand'
+                  : 'border-transparent text-mc-text-secondary hover:text-mc-text'
+              }`}
             >
               {tab.label}
             </button>
@@ -167,20 +195,22 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
               {/* Avatar Selection */}
               <div>
                 <label className="block text-sm font-medium mb-2">Avatar</label>
-                <div className="flex flex-wrap gap-2">
-                  {AVAILABLE_AVATARS.map((iconName) => (
+                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Select avatar">
+                  {EMOJI_OPTIONS.map((emoji) => (
                     <button
-                      key={iconName}
+                      key={emoji}
                       type="button"
-                      onClick={() => setForm({ ...form, avatar_emoji: iconName })}
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-all ${form.avatar_emoji === iconName
-                          ? 'bg-mc-accent-cyan/20 border border-mc-accent-cyan shadow-[0_0_15px_rgba(34,211,238,0.2)] text-mc-accent-cyan'
-                          : 'bg-white/5 border border-white/10 hover:border-white/30 text-mc-text-secondary hover:text-mc-text'
-                        }`}
+                      role="radio"
+                      aria-checked={form.avatar_emoji === emoji}
+                      aria-label={`Avatar ${emoji}`}
+                      onClick={() => setForm({ ...form, avatar_emoji: emoji })}
+                      className={`text-2xl p-2 rounded-lg hover:bg-mc-bg-tertiary transition-colors ${
+                        form.avatar_emoji === emoji
+                          ? 'bg-tm-brand/20 ring-2 ring-tm-brand'
+                          : ''
+                      }`}
                     >
-                      <div className="w-5 h-5">
-                        <AgentAvatar avatar={iconName} />
-                      </div>
+                      {emoji}
                     </button>
                   ))}
                 </div>
@@ -192,11 +222,14 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                 <input
                   type="text"
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={(e) => { setForm({ ...form, name: e.target.value }); setErrors(prev => ({ ...prev, name: '' })); }}
                   required
-                  className="w-full min-h-11 glass-input px-3 py-2 text-sm focus:outline-none"
+                  className={`w-full min-h-11 bg-mc-bg border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors ${errors.name ? 'border-mc-accent-red' : 'border-mc-border'}`}
                   placeholder="Agent name"
+                  aria-invalid={!!errors.name}
+                  aria-describedby={errors.name ? 'name-error' : undefined}
                 />
+                {errors.name && <p id="name-error" className="text-xs text-mc-accent-red mt-1">{errors.name}</p>}
               </div>
 
               {/* Role */}
@@ -205,11 +238,14 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                 <input
                   type="text"
                   value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  onChange={(e) => { setForm({ ...form, role: e.target.value }); setErrors(prev => ({ ...prev, role: '' })); }}
                   required
-                  className="w-full min-h-11 glass-input px-3 py-2 text-sm focus:outline-none"
+                  className={`w-full min-h-11 bg-mc-bg border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors ${errors.role ? 'border-mc-accent-red' : 'border-mc-border'}`}
                   placeholder="e.g., Code & Automation"
+                  aria-invalid={!!errors.role}
+                  aria-describedby={errors.role ? 'role-error' : undefined}
                 />
+                {errors.role && <p id="role-error" className="text-xs text-mc-accent-red mt-1">{errors.role}</p>}
               </div>
 
               {/* Description */}
@@ -219,7 +255,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={2}
-                  className="w-full glass-input px-3 py-2 text-sm focus:outline-none resize-none"
+                  className="w-full bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent resize-none"
                   placeholder="What does this agent do?"
                 />
               </div>
@@ -230,7 +266,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value as AgentStatus })}
-                  className="w-full min-h-11 glass-input px-3 py-2 text-sm focus:outline-none [&>option]:bg-mc-bg-secondary"
+                  className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
                 >
                   <option value="standby">Standby</option>
                   <option value="working">Working</option>
@@ -245,7 +281,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                   id="is_master"
                   checked={form.is_master}
                   onChange={(e) => setForm({ ...form, is_master: e.target.checked })}
-                  className="w-4 h-4 accent-mc-accent-cyan"
+                  className="w-4 h-4"
                 />
                 <label htmlFor="is_master" className="text-sm">
                   Master Orchestrator (can coordinate other agents)
@@ -266,7 +302,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                   <select
                     value={form.model}
                     onChange={(e) => setForm({ ...form, model: e.target.value })}
-                    className="w-full min-h-11 glass-input px-3 py-2 text-sm focus:outline-none [&>option]:bg-mc-bg-secondary"
+                    className="w-full min-h-11 bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-tm-brand focus:ring-1 focus:ring-tm-brand/30 transition-colors"
                   >
                     <option value="">-- Use Default Model --</option>
                     {availableModels.map((model) => (
@@ -292,7 +328,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                 value={form.soul_md}
                 onChange={(e) => setForm({ ...form, soul_md: e.target.value })}
                 rows={15}
-                className="w-full glass-input px-3 py-3 text-sm font-mono focus:outline-none resize-none"
+                className="w-full bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm font-mono focus:outline-none focus:border-mc-accent resize-none"
                 placeholder="# Agent Name&#10;&#10;Define this agent's personality, values, and communication style..."
               />
             </div>
@@ -307,7 +343,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                 value={form.user_md}
                 onChange={(e) => setForm({ ...form, user_md: e.target.value })}
                 rows={15}
-                className="w-full glass-input px-3 py-3 text-sm font-mono focus:outline-none resize-none"
+                className="w-full bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm font-mono focus:outline-none focus:border-mc-accent resize-none"
                 placeholder="# User Context&#10;&#10;Information about the human this agent works with..."
               />
             </div>
@@ -322,7 +358,7 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
                 value={form.agents_md}
                 onChange={(e) => setForm({ ...form, agents_md: e.target.value })}
                 rows={15}
-                className="w-full glass-input px-3 py-3 text-sm font-mono focus:outline-none resize-none"
+                className="w-full bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm font-mono focus:outline-none focus:border-mc-accent resize-none"
                 placeholder="# Team Roster&#10;&#10;Information about other agents this agent works with..."
               />
             </div>
@@ -330,13 +366,13 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t border-white/5 bg-white/[0.02]">
+        <div className="flex items-center justify-between p-4 border-t border-mc-border">
           <div>
             {agent && (
               <button
                 type="button"
-                onClick={handleDelete}
-                className="min-h-11 flex items-center gap-2 px-3 py-2 text-mc-accent-red hover:bg-mc-accent-red/10 rounded-xl transition-colors text-sm font-medium"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="min-h-11 flex items-center gap-2 px-3 py-2 text-mc-accent-red hover:bg-mc-accent-red/10 rounded-lg text-sm transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete
@@ -347,21 +383,32 @@ export function AgentModal({ agent, onClose, workspaceId, onAgentCreated }: Agen
             <button
               type="button"
               onClick={onClose}
-              className="min-h-11 px-4 py-2 text-sm text-mc-text-secondary hover:text-mc-text hover:bg-white/5 rounded-full transition-colors"
+              className="min-h-11 px-4 py-2 text-sm text-mc-text-secondary hover:text-mc-text transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="min-h-11 flex items-center gap-2 px-6 py-2 bg-mc-accent-cyan text-black rounded-full text-sm font-medium transition-all hover:bg-mc-accent-cyan/90 hover:scale-105 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:hover:scale-100"
+              className="min-h-11 flex items-center gap-2 px-4 py-2 bg-tm-brand text-white rounded-lg text-sm font-medium hover:bg-tm-brand-dark disabled:opacity-50 shadow-glow-sm transition-colors"
             >
               <Save className="w-4 h-4" />
-              {isSubmitting ? 'Saving...' : 'Save Agent'}
+              {isSubmitting ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
+
+      {showDeleteConfirm && agent && (
+        <ConfirmDialog
+          title={`Delete ${agent.name}?`}
+          message="This agent will be permanently removed. Any tasks assigned to this agent will be unassigned."
+          confirmLabel="Delete Agent"
+          destructive
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
     </div>
   );
 }

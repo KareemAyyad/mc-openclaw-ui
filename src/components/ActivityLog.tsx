@@ -7,7 +7,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Rocket, Edit3, CheckCircle2, FilePlus2, RefreshCw, FileText, Bot } from 'lucide-react';
+import { useVisibleInterval } from '@/hooks/useVisibility';
 import type { TaskActivity } from '@/lib/types';
 
 interface ActivityLogProps {
@@ -60,33 +60,23 @@ export function ActivityLog({ taskId }: ActivityLogProps) {
     }
   }, [taskId]); // setActivities is stable from React, no need to include
 
-  // Poll for new activities every 5 seconds when task is in progress
-  useEffect(() => {
-    const pollInterval = setInterval(pollForActivities, 5000);
-
-    pollingRef.current = pollInterval;
-
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-      }
-    };
-  }, [taskId, pollForActivities]);
+  // Poll for new activities every 5 seconds (only when tab is visible)
+  useVisibleInterval(pollForActivities, 5000);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'spawned':
-        return <Rocket className="w-5 h-5 text-mc-accent-cyan" />;
+        return '🚀';
       case 'updated':
-        return <Edit3 className="w-5 h-5 text-mc-accent-yellow" />;
+        return '✏️';
       case 'completed':
-        return <CheckCircle2 className="w-5 h-5 text-mc-accent-green" />;
+        return '✅';
       case 'file_created':
-        return <FilePlus2 className="w-5 h-5 text-mc-accent-purple" />;
+        return '📄';
       case 'status_changed':
-        return <RefreshCw className="w-5 h-5 text-blue-400" />;
+        return '🔄';
       default:
-        return <FileText className="w-5 h-5 text-mc-text-secondary" />;
+        return '📝';
     }
   };
 
@@ -100,63 +90,57 @@ export function ActivityLog({ taskId }: ActivityLogProps) {
 
   if (activities.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-mc-text-secondary glass-panel rounded-2xl border-dashed">
-        <FileText className="w-12 h-12 mb-3 opacity-50" strokeWidth={1.5} />
+      <div className="flex flex-col items-center justify-center py-8 text-mc-text-secondary">
+        <div className="text-4xl mb-2">📝</div>
         <p>No activity yet</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3" role="log" aria-label="Task activity log" aria-live="polite">
       {activities.map((activity) => (
-        <div
+        <article
           key={activity.id}
-          className="flex gap-4 p-4 glass-panel rounded-2xl hover:bg-white/[0.04] transition-colors group"
+          className="flex gap-3 p-3 bg-mc-bg rounded-xl border border-mc-border"
         >
           {/* Icon */}
-          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 filter drop-shadow group-hover:scale-110 transition-transform">
+          <div className="text-2xl flex-shrink-0" aria-hidden="true">
             {getActivityIcon(activity.activity_type)}
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0 pt-0.5">
+          <div className="flex-1 min-w-0">
             {/* Agent info */}
             {activity.agent && (
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-5 h-5 rounded bg-white/10 flex items-center justify-center filter drop-shadow">
-                  <Bot className="w-3.5 h-3.5 text-mc-text-secondary" />
-                </div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm">{activity.agent.avatar_emoji}</span>
                 <span className="text-sm font-medium text-mc-text">
                   {activity.agent.name}
-                </span>
-                <span className="text-xs text-mc-text-secondary px-1.5 py-0.5 rounded bg-white/5 border border-white/10 scale-90 origin-left">
-                  Agent
                 </span>
               </div>
             )}
 
             {/* Message */}
-            <p className="text-sm text-mc-text break-words leading-relaxed">
+            <p className="text-sm text-mc-text break-words">
               {activity.message}
             </p>
 
             {/* Metadata */}
             {activity.metadata && (
-              <div className="mt-3 p-3 bg-black/40 border border-white/5 rounded-xl text-xs text-mc-text-secondary font-mono overflow-x-auto hide-scrollbar">
-                {typeof activity.metadata === 'string'
-                  ? activity.metadata
+              <div className="mt-2 p-2 bg-mc-bg-tertiary rounded text-xs text-mc-text-secondary font-mono">
+                {typeof activity.metadata === 'string' 
+                  ? activity.metadata 
                   : JSON.stringify(JSON.parse(activity.metadata), null, 2)}
               </div>
             )}
 
             {/* Timestamp */}
-            <div className="text-xs text-mc-text-secondary/60 mt-3 flex items-center gap-1.5">
-              <span className="w-1 h-1 rounded-full bg-mc-text-secondary/40" />
+            <time dateTime={activity.created_at} className="text-xs text-mc-text-secondary mt-2 block">
               {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
-            </div>
+            </time>
           </div>
-        </div>
+        </article>
       ))}
     </div>
   );

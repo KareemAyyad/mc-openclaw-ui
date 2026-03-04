@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { queryAll, queryOne, run } from '@/lib/db';
 import { broadcast } from '@/lib/events';
 import { CreateTaskSchema } from '@/lib/validation';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 import type { Task, CreateTaskRequest, Agent } from '@/lib/types';
 
 // GET /api/tasks - List all tasks with optional filters
@@ -78,6 +79,16 @@ export async function GET(request: NextRequest) {
 
 // POST /api/tasks - Create a new task
 export async function POST(request: NextRequest) {
+  // Rate limit write operations
+  const ip = getClientIP(request);
+  const rateCheck = checkRateLimit(`tasks-write:${ip}`, RATE_LIMITS.write);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body: CreateTaskRequest = await request.json();
     console.log('[POST /api/tasks] Received body:', JSON.stringify(body));

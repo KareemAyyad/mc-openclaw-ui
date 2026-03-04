@@ -1,0 +1,69 @@
+
+> mission-control@1.3.1 build
+> next build
+
+  ▲ Next.js 14.2.21
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!/Users/kareem/Documents/mc-openclaw-ui/src/app/globals.css': No serializer registered for PostCSSSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> PostCSSSyntaxError
+Failed to compile.
+
+./src/app/globals.css:69:3
+Syntax error: /Users/kareem/Documents/mc-openclaw-ui/src/app/globals.css The `shadow-[0_0_10px_rgba(16,` class does not exist. If `shadow-[0_0_10px_rgba(16,` is a custom class, make sure it is defined within a `@layer` directive.
+
+  67 | 
+  68 | .status-working {
+> 69 |   @apply bg-mc-accent-green/10 text-mc-accent-green border border-mc-accent-green/30 shadow-[0_0_10px_rgba(16, 185, 129, 0.1)];
+     |   ^
+  70 | }
+  71 |
+
+./src/app/globals.css
+Syntax error: /Users/kareem/Documents/mc-openclaw-ui/src/app/globals.css The `shadow-[0_0_10px_rgba(16,` class does not exist. If `shadow-[0_0_10px_rgba(16,` is a custom class, make sure it is defined within a `@layer` directive. (69:3)
+
+  67 | 
+  68 | .status-working {
+> 69 |   @apply bg-mc-accent-green/10 text-mc-accent-green border border-mc-accent-green/30 shadow-[0_0_10px_rgba(16, 185, 129, 0.1)];
+     |   ^
+  70 | }
+  71 | 
+
+    at tryRunOrWebpackError (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:312989)
+    at __webpack_require_module__ (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:131165)
+    at __nested_webpack_require_153728__ (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:130607)
+    at /Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:131454
+    at symbolIterator (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/neo-async/async.js:1:14444)
+    at done (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/neo-async/async.js:1:14824)
+    at Hook.eval [as callAsync] (eval at create (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:13:28858), <anonymous>:15:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:13:26012)
+    at /Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:130328
+    at symbolIterator (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/neo-async/async.js:1:14402)
+-- inner error --
+Syntax error: /Users/kareem/Documents/mc-openclaw-ui/src/app/globals.css The `shadow-[0_0_10px_rgba(16,` class does not exist. If `shadow-[0_0_10px_rgba(16,` is a custom class, make sure it is defined within a `@layer` directive. (69:3)
+
+  67 | 
+  68 | .status-working {
+> 69 |   @apply bg-mc-accent-green/10 text-mc-accent-green border border-mc-accent-green/30 shadow-[0_0_10px_rgba(16, 185, 129, 0.1)];
+     |   ^
+  70 | }
+  71 | 
+
+    at Object.<anonymous> (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!/Users/kareem/Documents/mc-openclaw-ui/src/app/globals.css:1:7)
+    at /Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:922493
+    at Hook.eval [as call] (eval at create (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:13:28636), <anonymous>:7:1)
+    at Hook.CALL_DELEGATE [as _call] (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:13:25906)
+    at /Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:131198
+    at tryRunOrWebpackError (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:312943)
+    at __webpack_require_module__ (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:131165)
+    at __nested_webpack_require_153728__ (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:130607)
+    at /Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/webpack/bundle5.js:28:131454
+    at symbolIterator (/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/compiled/neo-async/async.js:1:14444)
+
+Generated code for /Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!/Users/kareem/Documents/mc-openclaw-ui/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!/Users/kareem/Documents/mc-openclaw-ui/src/app/globals.css
+
+Import trace for requested module:
+./src/app/globals.css
+
+
+> Build failed because of webpack errors

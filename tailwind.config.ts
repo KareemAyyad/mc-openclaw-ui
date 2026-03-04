@@ -6,63 +6,43 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // Premium Light Theme
-        'mc-bg': '#f8fafc', // slate-50 base
-        'mc-bg-secondary': '#ffffff', // white pane
-        'mc-bg-tertiary': '#f1f5f9', // slate-100 elevated 
-
-        // Borders (Subtle Glass)
-        'mc-border': 'rgba(15, 23, 42, 0.08)',
-        'mc-border-hover': 'rgba(15, 23, 42, 0.15)',
-
-        // Typography Hierarchy
-        'mc-text': '#0f172a', // slate-900
-        'mc-text-secondary': '#64748b', // slate-500
-
-        // Premium Neon Accents (Adjusted for light theme)
-        'mc-accent': '#0284c7', // sky-600 primary action
-        'mc-accent-green': '#059669', // emerald-600 online/success
-        'mc-accent-yellow': '#d97706', // amber-600 warning
-        'mc-accent-red': '#dc2626', // red-600 error
-        'mc-accent-purple': '#7c3aed', // violet-600 highlight
-        'mc-accent-pink': '#db2777', // pink-600 accent
-        'mc-accent-cyan': '#0891b2', // cyan-600 bright accent
+        // Colors are driven by CSS variables so the theme can be toggled
+        'mc-bg': 'var(--mc-bg)',
+        'mc-bg-secondary': 'var(--mc-bg-secondary)',
+        'mc-bg-tertiary': 'var(--mc-bg-tertiary)',
+        'mc-border': 'var(--mc-border)',
+        'mc-text': 'var(--mc-text)',
+        'mc-text-secondary': 'var(--mc-text-secondary)',
+        'mc-accent': 'var(--mc-accent)',
+        'mc-accent-green': 'var(--mc-accent-green)',
+        'mc-accent-yellow': 'var(--mc-accent-yellow)',
+        'mc-accent-red': 'var(--mc-accent-red)',
+        'mc-accent-purple': 'var(--mc-accent-purple)',
+        'mc-accent-pink': 'var(--mc-accent-pink)',
+        'mc-accent-cyan': 'var(--mc-accent-cyan)',
+        // Teammates.ai brand color
+        'tm-brand': '#4f8ff7',
+        'tm-brand-light': '#7aadff',
+        'tm-brand-dark': '#2b6ed9',
       },
       fontFamily: {
-        // Use a clean geometric sans for UI, keeping mono for tech details
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        heading: ['Outfit', 'Space Grotesk', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
-      // Subtle Animations for micro-interactions
-      animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'fade-in': 'fadeIn 0.3s ease-out forwards',
-        'slide-in-right': 'slideInRight 0.3s ease-out forwards',
-        'slide-in-left': 'slideInLeft 0.3s ease-out forwards',
-        'scale-in': 'scaleIn 0.2s ease-out forwards',
+      boxShadow: {
+        'glow': '0 0 20px rgba(79, 143, 247, 0.15)',
+        'glow-sm': '0 0 10px rgba(79, 143, 247, 0.1)',
+        'card': '0 2px 8px rgba(0, 0, 0, 0.3)',
+        'card-hover': '0 4px 16px rgba(0, 0, 0, 0.4)',
       },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(5px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideInRight: {
-          '0%': { opacity: '0', transform: 'translateX(20px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' },
-        },
-        slideInLeft: {
-          '0%': { opacity: '0', transform: 'translateX(-20px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' },
-        },
-        scaleIn: {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
-        }
-      }
+      borderRadius: {
+        'xl': '0.875rem',
+        '2xl': '1rem',
+      },
     },
   },
   plugins: [],

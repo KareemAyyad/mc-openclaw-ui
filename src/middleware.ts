@@ -1,9 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 
 // Log warning at startup if auth is disabled
 const MC_API_TOKEN = process.env.MC_API_TOKEN;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+if (!MC_API_TOKEN && NODE_ENV === 'production') {
+  console.error('[SECURITY CRITICAL] MC_API_TOKEN is not set in production! All API routes are UNPROTECTED.');
+}
+
 if (!MC_API_TOKEN) {
   console.warn('[SECURITY WARNING] MC_API_TOKEN not set - API authentication is DISABLED (local dev mode)');
+}
+
+/**
+ * Constant-time string comparison to prevent timing attacks.
+ * Uses XOR comparison instead of crypto.timingSafeEqual for Edge Runtime compatibility.
+ */
+function timingSafeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
 }
 
 /**
@@ -47,6 +67,24 @@ function isSameOriginRequest(request: NextRequest): boolean {
   return false;
 }
 
+/**
+ * Extract client IP for rate limiting.
+ */
+function getClientIp(request: NextRequest): string {
+  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || request.headers.get('x-real-ip')
+    || 'unknown';
+}
+
+/**
+ * Get the appropriate rate limit config for a given path.
+ */
+function getRateLimitConfig(pathname: string) {
+  if (pathname.startsWith('/api/webhooks/')) return RATE_LIMITS.webhook;
+  if (pathname === '/api/events/stream') return RATE_LIMITS.sse;
+  return RATE_LIMITS.api;
+}
+
 // Demo mode — read-only, blocks all mutations
 const DEMO_MODE = process.env.DEMO_MODE === 'true';
 if (DEMO_MODE) {
@@ -67,12 +105,32 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Rate limiting for all API routes
+  const clientIp = getClientIp(request);
+  const rateLimitConfig = getRateLimitConfig(pathname);
+  const rateLimitKey = `${clientIp}:${pathname}`;
+  const rateResult = checkRateLimit(rateLimitKey, rateLimitConfig);
+
+  if (!rateResult.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((rateResult.resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Limit': String(rateLimitConfig.maxRequests),
+          'X-RateLimit-Remaining': '0',
+        },
+      }
+    );
+  }
+
   // Demo mode: block all write operations
   if (DEMO_MODE) {
     const method = request.method.toUpperCase();
     if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
       return NextResponse.json(
-        { error: 'Demo mode — this is a read-only instance. Visit github.com/crshdn/mission-control to run your own!' },
+        { error: 'Demo mode — this is a read-only instance. Visit github.com/crshdn/mission-control to run your own Teammates.ai!' },
         { status: 403 }
       );
     }
@@ -81,6 +139,13 @@ export function middleware(request: NextRequest) {
 
   // If MC_API_TOKEN is not set, auth is disabled (dev mode)
   if (!MC_API_TOKEN) {
+    // In production, reject all requests if no token is configured
+    if (NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: 'Server misconfigured: MC_API_TOKEN must be set in production' },
+        { status: 500 }
+      );
+    }
     return NextResponse.next();
   }
 
@@ -92,7 +157,7 @@ export function middleware(request: NextRequest) {
   // Special case: /api/events/stream (SSE) - allow token as query param
   if (pathname === '/api/events/stream') {
     const queryToken = request.nextUrl.searchParams.get('token');
-    if (queryToken && queryToken === MC_API_TOKEN) {
+    if (queryToken && timingSafeCompare(queryToken, MC_API_TOKEN)) {
       return NextResponse.next();
     }
     // Fall through to header check below
@@ -100,7 +165,7 @@ export function middleware(request: NextRequest) {
 
   // Check Authorization header for bearer token
   const authHeader = request.headers.get('authorization');
-  
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return NextResponse.json(
       { error: 'Unauthorized' },
@@ -109,8 +174,8 @@ export function middleware(request: NextRequest) {
   }
 
   const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-  
-  if (token !== MC_API_TOKEN) {
+
+  if (!timingSafeCompare(token, MC_API_TOKEN)) {
     return NextResponse.json(
       { error: 'Unauthorized' },
       { status: 401 }
@@ -121,5 +186,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/api/:path*',
+  matcher: ['/api/:path*', '/((?!_next/static|_next/image|favicon.svg).*)'],
 };

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { JetBrains_Mono } from 'next/font/google';
 import DemoBanner from '@/components/DemoBanner';
-import Sidebar from '@/components/Sidebar';
+import { ToastContainer } from '@/components/ToastContainer';
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
@@ -12,8 +12,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Mission Control',
-  description: 'AI Agent Orchestration Dashboard',
+  title: 'Teammates.ai — AI Agent Orchestration',
+  description: 'Teammates.ai by Kareem Ayyad — Orchestrate AI agents, manage tasks, and ship faster with your AI teammates.',
   icons: {
     icon: '/favicon.svg',
   },
@@ -26,14 +26,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={jetbrainsMono.variable}>
-      <body className={`${jetbrainsMono.className} bg-mc-bg text-mc-text min-h-screen flex`}>
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-h-screen relative">
-          <DemoBanner />
-          <main className="flex-1 w-full relative z-0">
-            {children}
-          </main>
+      <body className={`${jetbrainsMono.className} bg-mc-bg text-mc-text min-h-screen antialiased`}>
+        <a href="#main-content" className="skip-link">Skip to main content</a>
+        <DemoBanner />
+        <div id="main-content">
+          {children}
         </div>
+        <ToastContainer />
       </body>
     </html>
   );

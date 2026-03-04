@@ -7,6 +7,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Bot, CheckCircle, Circle, XCircle, Trash2, Check } from 'lucide-react';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 interface SessionWithAgent {
   id: string;
@@ -30,6 +31,7 @@ interface SessionsListProps {
 export function SessionsList({ taskId }: SessionsListProps) {
   const [sessions, setSessions] = useState<SessionWithAgent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
 
   const loadSessions = useCallback(async () => {
     try {
@@ -54,7 +56,7 @@ export function SessionsList({ taskId }: SessionsListProps) {
       case 'active':
         return <Circle className="w-4 h-4 text-green-500 fill-current animate-pulse" />;
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-mc-accent" />;
+        return <CheckCircle className="w-4 h-4 text-tm-brand" />;
       case 'failed':
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
@@ -109,7 +111,6 @@ export function SessionsList({ taskId }: SessionsListProps) {
   };
 
   const handleDelete = async (sessionId: string) => {
-    if (!confirm('Delete this sub-agent session?')) return;
     try {
       const res = await fetch(`/api/openclaw/sessions/${sessionId}`, {
         method: 'DELETE',
@@ -132,83 +133,99 @@ export function SessionsList({ taskId }: SessionsListProps) {
 
   if (sessions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-mc-text-secondary glass-panel rounded-2xl border-dashed">
-        <Bot className="w-12 h-12 mb-3 opacity-50 text-mc-accent-cyan" strokeWidth={1.5} />
+      <div className="flex flex-col items-center justify-center py-8 text-mc-text-secondary">
+        <div className="text-4xl mb-2">🤖</div>
         <p>No sub-agent sessions yet</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3" role="list" aria-label="Sub-agent sessions">
       {sessions.map((session) => (
         <div
           key={session.id}
-          className="flex gap-4 p-4 glass-panel rounded-2xl hover:bg-white/[0.04] transition-colors group"
+          role="listitem"
+          className="flex gap-3 p-3 bg-mc-bg rounded-xl border border-mc-border"
         >
           {/* Agent Avatar */}
-          <div className="flex-shrink-0 mt-0.5">
-            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center filter drop-shadow group-hover:bg-white/10 transition-colors">
-              <Bot className="w-5 h-5 text-mc-accent-cyan" />
-            </div>
+          <div className="flex-shrink-0" aria-hidden="true">
+            {session.agent_avatar_emoji ? (
+              <span className="text-2xl">{session.agent_avatar_emoji}</span>
+            ) : (
+              <Bot className="w-8 h-8 text-tm-brand" />
+            )}
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             {/* Agent name and status */}
-            <div className="flex items-center gap-2.5 mb-2">
+            <div className="flex items-center gap-2 mb-1">
               {getStatusIcon(session.status)}
-              <span className="font-medium text-mc-text text-sm">
+              <span className="font-medium text-mc-text">
                 {session.agent_name || 'Sub-Agent'}
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider bg-white/5 border border-white/10 text-mc-text-secondary">
+              <span className="text-xs text-mc-text-secondary capitalize">
                 {session.status}
               </span>
             </div>
 
             {/* Session ID */}
-            <div className="mt-2 p-3 bg-black/40 border border-white/5 rounded-xl text-xs text-mc-text-secondary font-mono truncate">
-              Session: <span className="text-mc-text">{session.openclaw_session_id}</span>
+            <div className="text-xs text-mc-text-secondary font-mono mb-2 truncate">
+              Session: {session.openclaw_session_id}
             </div>
 
             {/* Duration and timestamps */}
-            <div className="flex items-center gap-2 mt-3 text-xs text-mc-text-secondary/80">
-              <span className="text-mc-accent-purple font-mono bg-mc-accent-purple/10 px-1.5 py-0.5 rounded border border-mc-accent-purple/20">
-                {formatDuration(session.created_at, session.ended_at)}
+            <div className="flex items-center gap-3 text-xs text-mc-text-secondary">
+              <span>
+                Duration: {formatDuration(session.created_at, session.ended_at)}
               </span>
-              <span className="w-1 h-1 rounded-full bg-white/20" />
+              <span>•</span>
               <span>Started {formatTimestamp(session.created_at)}</span>
             </div>
 
             {/* Channel */}
             {session.channel && (
-              <div className="mt-2 text-xs text-mc-text-secondary/80">
-                Channel: <span className="font-mono text-mc-text border border-white/5 bg-white/5 px-1.5 py-0.5 rounded ml-1">{session.channel}</span>
+              <div className="mt-2 text-xs text-mc-text-secondary">
+                Channel: <span className="font-mono">{session.channel}</span>
               </div>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity justify-start h-full">
+          <div className="flex flex-col gap-1">
             {session.status === 'active' && (
               <button
                 onClick={() => handleMarkComplete(session.openclaw_session_id)}
-                className="p-2 hover:bg-mc-accent-green/10 rounded-lg text-mc-accent-green transition-colors"
-                title="Mark as complete"
+                className="p-1.5 hover:bg-mc-bg-tertiary rounded-lg text-mc-accent-green transition-colors"
+                aria-label={`Mark ${session.agent_name || 'session'} as complete`}
               >
                 <Check className="w-4 h-4" />
               </button>
             )}
             <button
-              onClick={() => handleDelete(session.openclaw_session_id)}
-              className="p-2 hover:bg-mc-accent-red/10 rounded-lg text-mc-accent-red transition-colors"
-              title="Delete session"
+              onClick={() => setDeleteSessionId(session.openclaw_session_id)}
+              className="p-1.5 hover:bg-mc-bg-tertiary rounded-lg text-mc-accent-red transition-colors"
+              aria-label={`Delete ${session.agent_name || 'session'}`}
             >
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
         </div>
       ))}
+      {deleteSessionId !== null && (
+        <ConfirmDialog
+          title="Delete Session"
+          message="Delete this sub-agent session? This action cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={() => {
+            handleDelete(deleteSessionId);
+            setDeleteSessionId(null);
+          }}
+          onCancel={() => setDeleteSessionId(null)}
+          destructive
+        />
+      )}
     </div>
   );
 }

@@ -2,14 +2,18 @@
  * File Download API
  * Returns file content over HTTP from the server filesystem.
  * This enables remote agents to read files from
- * the Mission Control server.
+ * the Teammates.ai server.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync, existsSync, statSync, realpathSync } from 'fs';
 import path from 'path';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
+
+// Maximum file size for downloads: 50 MB
+const MAX_DOWNLOAD_SIZE = 50 * 1024 * 1024;
 
 // Base directory for all project files - must match upload endpoint
 // Set via PROJECTS_PATH env var (e.g., ~/projects or /var/www/projects)
@@ -44,11 +48,29 @@ const MIME_TYPES: Record<string, string> = {
  *   - raw: If 'true', returns raw file content; otherwise returns JSON wrapper
  */
 export async function GET(request: NextRequest) {
+  // Rate limit file downloads
+  const ip = getClientIP(request);
+  const rateCheck = checkRateLimit(`file-download:${ip}`, RATE_LIMITS.fileOps);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rateCheck.resetAt - Date.now()) / 1000)) } }
+    );
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const fullPathParam = searchParams.get('path');
     const relativePathParam = searchParams.get('relativePath');
     const raw = searchParams.get('raw') === 'true';
+
+    // Reject null bytes in path parameters
+    if ((fullPathParam && fullPathParam.includes('\0')) || (relativePathParam && relativePathParam.includes('\0'))) {
+      return NextResponse.json(
+        { error: 'Invalid path' },
+        { status: 400 }
+      );
+    }
 
     // Determine the target path
     let targetPath: string;
@@ -110,8 +132,16 @@ export async function GET(request: NextRequest) {
     const stats = statSync(targetPath);
     if (stats.isDirectory()) {
       return NextResponse.json(
-        { error: 'Path is a directory, not a file', path: targetPath },
+        { error: 'Path is a directory, not a file' },
         { status: 400 }
+      );
+    }
+
+    // Enforce file size limit
+    if (stats.size > MAX_DOWNLOAD_SIZE) {
+      return NextResponse.json(
+        { error: `File too large. Maximum download size: ${MAX_DOWNLOAD_SIZE / (1024 * 1024)} MB` },
+        { status: 413 }
       );
     }
 
