@@ -172,52 +172,52 @@ export default function PipelinePage() {
                                 <span className="text-emerald-600 font-bold">{stats.icpFound}</span>
                             </div>
                             <div className="h-8 w-full bg-slate-100 rounded-lg overflow-hidden flex items-center">
-                                <div className="h-full bg-emerald-400 max-w-full transition-all duration-1000" style={{ width: \`\${icpPercent}%\` }}></div>
+                                <div className="h-full bg-emerald-400 max-w-full transition-all duration-1000" style={{ width: `${icpPercent}%` }}></div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-center -my-2 relative z-10 text-slate-300"><ArrowDown className="w-5 h-5" /></div>
+
+                        {/* Sequences Bar */}
+                        <div className="relative">
+                            <div className="flex justify-between text-sm font-medium mb-1">
+                                <span className="text-blue-700 font-bold">3. Apollo Sequences Active (Outbound)</span>
+                                <span className="text-blue-600 font-bold">{stats.sequencesSent}</span>
+                            </div>
+                            <div className="h-8 w-full bg-slate-100 rounded-lg overflow-hidden flex items-center">
+                                {/* Ensure the width doesn't exceed 100% horizontally but stays proportional */}
+                                <div className="h-full bg-blue-400 max-w-full transition-all duration-1000" style={{ width: `${Math.min(100, (stats.sequencesSent / Math.max(stats.icpFound, 1)) * 100)}%` }}></div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-center -my-2 relative z-10 text-slate-300"><ArrowDown className="w-5 h-5" /></div>
+
+                        {/* PQL Bar */}
+                        <div className="relative">
+                            <div className="flex justify-between text-sm font-medium mb-1">
+                                <span className="text-rose-700 font-bold">4. Product Qualified Leads (Onboarding)</span>
+                                <span className="text-rose-600 font-bold">{stats.pqlDetected}</span>
+                            </div>
+                            <div className="h-8 w-full bg-slate-100 rounded-lg overflow-hidden flex items-center">
+                                <div className="h-full bg-rose-500 max-w-full transition-all duration-1000" style={{ width: `${Math.min(100, (stats.pqlDetected / Math.max(stats.sequencesSent, 1)) * 100)}%` }}></div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between">
+                            <div>
+                                <p className="text-sm font-medium text-slate-500 mb-1">Overall Conversion Rate</p>
+                                <p className="text-2xl font-bold text-slate-900">{overallConversion}%</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm font-medium text-slate-500 mb-1">Est. Pipeline Value</p>
+                                <p className="text-2xl font-bold text-slate-900">${pipelineValue}</p>
+                            </div>
                         </div>
                     </div>
-
-                    <div className="flex justify-center -my-2 relative z-10 text-slate-300"><ArrowDown className="w-5 h-5" /></div>
-
-                    {/* Sequences Bar */}
-                    <div className="relative">
-                        <div className="flex justify-between text-sm font-medium mb-1">
-                            <span className="text-blue-700 font-bold">3. Apollo Sequences Active (Outbound)</span>
-                            <span className="text-blue-600 font-bold">{stats.sequencesSent}</span>
-                        </div>
-                        <div className="h-8 w-full bg-slate-100 rounded-lg overflow-hidden flex items-center">
-                            {/* Ensure the width doesn't exceed 100% horizontally but stays proportional */}
-                            <div className="h-full bg-blue-400 max-w-full transition-all duration-1000" style={{ width: \`\${Math.min(100, (stats.sequencesSent / Math.max(stats.icpFound, 1)) * 100)}%\` }}></div>
-                    </div>
                 </div>
 
-                <div className="flex justify-center -my-2 relative z-10 text-slate-300"><ArrowDown className="w-5 h-5" /></div>
-
-                {/* PQL Bar */}
-                <div className="relative">
-                    <div className="flex justify-between text-sm font-medium mb-1">
-                        <span className="text-rose-700 font-bold">4. Product Qualified Leads (Onboarding)</span>
-                        <span className="text-rose-600 font-bold">{stats.pqlDetected}</span>
-                    </div>
-                    <div className="h-8 w-full bg-slate-100 rounded-lg overflow-hidden flex items-center">
-                        <div className="h-full bg-rose-500 max-w-full transition-all duration-1000" style={{ width: \`\${Math.min(100, (stats.pqlDetected / Math.max(stats.sequencesSent, 1)) * 100)}%\` }}></div>
-                </div>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between">
-                <div>
-                    <p className="text-sm font-medium text-slate-500 mb-1">Overall Conversion Rate</p>
-                    <p className="text-2xl font-bold text-slate-900">{overallConversion}%</p>
-                </div>
-                <div className="text-right">
-                    <p className="text-sm font-medium text-slate-500 mb-1">Est. Pipeline Value</p>
-                    <p className="text-2xl font-bold text-slate-900">${pipelineValue}</p>
-                </div>
-            </div>
-        </div>
-                </div >
-
-        {/* Right Column: Key Alerts */ }
-        < div className = "bg-white rounded-3xl border border-slate-200/80 shadow-sm p-8" >
+                {/* Right Column: Key Alerts */}
+                <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-8">
                     <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
                         <Activity className="w-5 h-5 mr-2 text-slate-400" /> Action Required
                     </h2>
@@ -239,7 +239,7 @@ export default function PipelinePage() {
                                 <span className="text-xs text-amber-500">5h ago</span>
                             </div>
                             <p className="text-sm font-medium text-slate-900 mb-1">Outbound Domain Health</p>
-                            <p className="text-sm text-slate-600 leading-relaxed">Open rates dropped to 18% on \`teammates-ai.co\`. Outbound agent paused sending.</p>
+                            <p className="text-sm text-slate-600 leading-relaxed">Open rates dropped to 18% on `teammates-ai.co`. Outbound agent paused sending.</p>
                             <button className="mt-3 text-xs font-bold text-amber-600 hover:text-amber-800 transition-colors">Check DNS →</button>
                         </div>
 
@@ -253,9 +253,9 @@ export default function PipelinePage() {
                             <button className="mt-3 text-xs font-bold text-slate-600 hover:text-slate-800 transition-colors">Review Draft →</button>
                         </div>
                     </div>
-                </div >
+                </div>
 
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

@@ -78,7 +78,7 @@ export default function FleetPage() {
                 </h1>
                 <p className="text-slate-500 text-lg flex items-center">
                     <Settings2 className="w-5 h-5 mr-2 inline" />
-                    {sourcePath ?\`Synced from \${sourcePath.split('/').pop()}\` : 'Teammates.ai 6-Agent Autonomous Organization'}
+                    {sourcePath ? `Synced from ${sourcePath.split('/').pop()}` : 'Teammates.ai 6-Agent Autonomous Organization'}
                 </p>
                 {error && <p className="text-red-500 text-sm mt-2">Warning: {error}</p>}
             </header>
@@ -196,7 +196,7 @@ export default function FleetPage() {
                         </div>
                     ))
                 })}
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

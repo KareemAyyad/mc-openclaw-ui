@@ -15,7 +15,7 @@ export async function GET() {
             || path.join(process.cwd(), '..', 'openclaw-kareem', 'openclaw.json');
 
         if (!fs.existsSync(openclawConfigPath)) {
-            console.warn(\`[Config API] openclaw.json not found at \${openclawConfigPath}\`);
+            console.warn(`[Config API] openclaw.json not found at ${openclawConfigPath}`);
       return NextResponse.json({ 
         error: 'openclaw.json not found', 
         path: openclawConfigPath,

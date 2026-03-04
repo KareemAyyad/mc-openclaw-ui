@@ -32,7 +32,7 @@ export function useGatewayWebSocket() {
         try {
             setStatus('connecting');
             // The gateway expects the token either in protocols or query string depending on OpenClaw version
-            const ws = new WebSocket(\`\${wssUrl}/v1/stream?token=\${token}\`);
+            const ws = new WebSocket(`${wssUrl}/v1/stream?token=${token}`);
       wsRef.current = ws;
 
       ws.onopen = () => {

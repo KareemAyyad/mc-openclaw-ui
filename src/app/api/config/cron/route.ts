@@ -12,7 +12,7 @@ export async function GET() {
             || path.join(process.cwd(), '..', 'openclaw-kareem', 'scripts', 'cron-setup.sh');
 
         if (!fs.existsSync(cronScriptPath)) {
-            console.warn(\`[Config API] cron-setup.sh not found at \${cronScriptPath}\`);
+            console.warn(`[Config API] cron-setup.sh not found at ${cronScriptPath}`);
       return NextResponse.json({ 
         error: 'cron-setup.sh not found', 
         path: cronScriptPath,
@@ -54,9 +54,9 @@ export async function GET() {
         // We skip complex cases like "*/6" for the UI grid if they don't map cleanly to a daily visual.
         let timeString = 'Flexible';
         if (!hour.includes('*') && !hour.includes('/')) {
-          timeString = \`\${hour.padStart(2, '0')}:\${minute === '0' || minute === '*' ? '00' : minute.padStart(2, '0')}\`;
+          timeString = `${hour.padStart(2, '0')}:${minute === '0' || minute === '*' ? '00' : minute.padStart(2, '0')}`;
         } else if (hour.includes('*/')) {
-           timeString = \`Every \${hour.replace('*/', '')}h\`;
+           timeString = `Every ${hour.replace('*/', '')}h`;
         }
 
         // Parse runDays (0-6 mapping to Sun-Sat)

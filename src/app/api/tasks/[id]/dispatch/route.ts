@@ -104,7 +104,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       // Create session record
       const sessionId = uuidv4();
       const openclawSessionId = `mission-control-${agent.name.toLowerCase().replace(/\s+/g, '-')}`;
-      
+
       run(
         `INSERT INTO openclaw_sessions (id, agent_id, openclaw_session_id, channel, status, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -211,7 +211,7 @@ Create this directory and save all deliverables there.
    Body: {"status": "review"}
 
 When complete, reply with:
-\`TASK_COMPLETE: [brief summary of what you did]\`
+'TASK_COMPLETE: [brief summary of what you did]'
 
 If you need help or clarification, ask the orchestrator.`;
 

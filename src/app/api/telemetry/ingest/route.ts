@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function POST(request: Request) {
-    try {
-        // 1. Basic Authorization (Shared Secret with Agents)
-        const authHeader = request.headers.get('authorization');
-        const expectedToken = process.env.TELEMETRY_WEBHOOK_SECRET || 'dev_secret_token';
+  try {
+    // 1. Basic Authorization (Shared Secret with Agents)
+    const authHeader = request.headers.get('authorization');
+    const expectedToken = process.env.TELEMETRY_WEBHOOK_SECRET || 'dev_secret_token';
 
-        if (authHeader !== \`Bearer \${expectedToken}\`) {
+    if (authHeader !== `Bearer ${expectedToken}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
