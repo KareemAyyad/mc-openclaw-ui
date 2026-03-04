@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { CheckCircle, Circle, Lock, AlertCircle, Loader2, X } from 'lucide-react';
+import { CheckCircle, Circle, Lock, AlertCircle, Loader2, X, ListTodo } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 interface PlanningOption {
@@ -68,7 +68,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
   const isPollingRef = useRef(false);
   const lastSubmissionRef = useRef<{ answer: string; otherText?: string } | null>(null);
   const currentQuestionRef = useRef<string | undefined>(undefined);
-  
+
 
 
   // Load planning state (initial load only)
@@ -404,7 +404,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
             </div>
           )}
         </div>
-        
+
         {/* Dispatch Error with Retry */}
         {state.dispatchError && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
@@ -439,12 +439,12 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
             </div>
           </div>
         )}
-        
+
         {/* Spec Summary */}
         <div className="bg-mc-bg border border-mc-border rounded-lg p-4">
           <h3 className="font-medium mb-2">{state.spec.title}</h3>
           <p className="text-sm text-mc-text-secondary mb-4">{state.spec.summary}</p>
-          
+
           {state.spec.deliverables?.length > 0 && (
             <div className="mb-3">
               <h4 className="text-sm font-medium mb-1">Deliverables:</h4>
@@ -455,7 +455,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
               </ul>
             </div>
           )}
-          
+
           {state.spec.success_criteria?.length > 0 && (
             <div>
               <h4 className="text-sm font-medium mb-1">Success Criteria:</h4>
@@ -467,7 +467,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
             </div>
           )}
         </div>
-        
+
         {/* Generated Agents */}
         {state.agents && state.agents.length > 0 && (
           <div>
@@ -496,18 +496,18 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
         <div className="text-center">
           <h3 className="text-lg font-medium mb-2">Start Planning</h3>
           <p className="text-mc-text-secondary text-sm max-w-md">
-            I&apos;ll ask you a few questions to understand exactly what you need. 
+            I&apos;ll ask you a few questions to understand exactly what you need.
             All questions are multiple choice — just click to answer.
           </p>
         </div>
-        
+
         {error && (
           <div className="flex items-center gap-2 text-red-400 text-sm">
             <AlertCircle className="w-4 h-4" />
             {error}
           </div>
         )}
-        
+
         <button
           onClick={startPlanning}
           disabled={starting}
@@ -519,7 +519,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
               Starting...
             </>
           ) : (
-            <>📋 Start Planning</>
+            <><ListTodo className="w-5 h-5" /> Start Planning</>
           )}
         </button>
       </div>
@@ -573,17 +573,15 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
                     <button
                       onClick={() => setSelectedOption(option.label)}
                       disabled={submitting}
-                      className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all text-left ${
-                        isThisOptionSubmitting
-                          ? 'border-tm-brand bg-tm-brand/20'
-                          : isSelected
+                      className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all text-left ${isThisOptionSubmitting
+                        ? 'border-tm-brand bg-tm-brand/20'
+                        : isSelected
                           ? 'border-tm-brand bg-tm-brand/10'
                           : 'border-mc-border hover:border-tm-brand/50'
-                      } disabled:opacity-50`}
+                        } disabled:opacity-50`}
                     >
-                      <span className={`w-8 h-8 rounded flex items-center justify-center text-sm font-bold ${
-                        isSelected ? 'bg-tm-brand text-white' : 'bg-mc-bg-tertiary'
-                      }`}>
+                      <span className={`w-8 h-8 rounded flex items-center justify-center text-sm font-bold ${isSelected ? 'bg-tm-brand text-white' : 'bg-mc-bg-tertiary'
+                        }`}>
                         {option.id.toUpperCase()}
                       </span>
                       <span className="flex-1">{option.label}</span>

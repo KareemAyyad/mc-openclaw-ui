@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Search, Download, Check, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { X, Search, Download, Check, AlertCircle, Loader2, RefreshCw, Bot, Link as LinkIcon } from 'lucide-react';
 import { useMissionControl } from '@/lib/store';
 import type { DiscoveredAgent } from '@/lib/types';
 
@@ -220,24 +220,22 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
                   return (
                     <div
                       key={agent.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors min-h-11 ${
-                        isImported
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors min-h-11 ${isImported
                           ? 'border-mc-border/50 bg-mc-bg/50 opacity-60'
                           : isSelected
-                          ? 'border-tm-brand/50 bg-tm-brand/5'
-                          : 'border-mc-border hover:border-mc-border/80 hover:bg-mc-bg-tertiary cursor-pointer'
-                      }`}
+                            ? 'border-tm-brand/50 bg-tm-brand/5'
+                            : 'border-mc-border hover:border-mc-border/80 hover:bg-mc-bg-tertiary cursor-pointer'
+                        }`}
                       onClick={() => !isImported && toggleSelection(agent.id)}
                     >
                       {/* Checkbox */}
                       <div
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                          isImported
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${isImported
                             ? 'border-green-500/50 bg-green-500/20'
                             : isSelected
-                            ? 'border-tm-brand bg-tm-brand'
-                            : 'border-mc-border'
-                        }`}
+                              ? 'border-tm-brand bg-tm-brand'
+                              : 'border-mc-border'
+                          }`}
                       >
                         {(isSelected || isImported) && (
                           <Check className={`w-3 h-3 ${isImported ? 'text-green-400' : 'text-mc-bg'}`} />
@@ -245,7 +243,9 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
                       </div>
 
                       {/* Avatar */}
-                      <span className="text-2xl">{isImported ? '🔗' : '🤖'}</span>
+                      <div className="flex items-center justify-center w-8 h-8 opacity-70">
+                        {isImported ? <LinkIcon className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+                      </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">

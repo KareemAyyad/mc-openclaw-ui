@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, ListTodo, Users, Activity, Settings as SettingsIcon, ExternalLink, Home, BarChart3 } from 'lucide-react';
+import { ChevronLeft, ListTodo, Users, Activity, Settings as SettingsIcon, ExternalLink, Home, BarChart3, SearchX } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { AgentsSidebar } from '@/components/AgentsSidebar';
 import { MissionQueue } from '@/components/MissionQueue';
@@ -179,7 +179,7 @@ export default function WorkspacePage() {
     return (
       <div className="min-h-screen bg-mc-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">🔍</div>
+          <div className="flex justify-center mb-4 text-mc-text-secondary opacity-70"><SearchX className="w-16 h-16" /></div>
           <h1 className="text-2xl font-bold mb-2">Workspace Not Found</h1>
           <p className="text-mc-text-secondary mb-6">The workspace &ldquo;{slug}&rdquo; doesn&apos;t exist.</p>
           <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-mc-accent text-mc-bg rounded-lg font-medium hover:bg-mc-accent/90">
@@ -217,9 +217,8 @@ export default function WorkspacePage() {
       </div>
 
       <div
-        className={`lg:hidden flex-1 overflow-hidden ${
-          showMobileBottomTabs ? 'pb-[calc(4.5rem+env(safe-area-inset-bottom))]' : 'pb-[env(safe-area-inset-bottom)]'
-        }`}
+        className={`lg:hidden flex-1 overflow-hidden ${showMobileBottomTabs ? 'pb-[calc(4.5rem+env(safe-area-inset-bottom))]' : 'pb-[env(safe-area-inset-bottom)]'
+          }`}
       >
         {isPortrait ? (
           <>
@@ -295,9 +294,8 @@ function MobileTabButton({ label, active, icon, onClick }: { label: string; acti
   return (
     <button
       onClick={onClick}
-      className={`min-h-11 rounded-lg flex flex-col items-center justify-center text-xs ${
-        active ? 'bg-mc-accent text-mc-bg font-medium' : 'text-mc-text-secondary'
-      }`}
+      className={`min-h-11 rounded-lg flex flex-col items-center justify-center text-xs ${active ? 'bg-mc-accent text-mc-bg font-medium' : 'text-mc-text-secondary'
+        }`}
     >
       {icon}
       <span>{label}</span>

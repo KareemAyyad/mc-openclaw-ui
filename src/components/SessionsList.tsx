@@ -134,7 +134,7 @@ export function SessionsList({ taskId }: SessionsListProps) {
   if (sessions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-mc-text-secondary">
-        <div className="text-4xl mb-2">🤖</div>
+        <div className="mb-2"><Bot className="w-10 h-10 opacity-70" /></div>
         <p>No sub-agent sessions yet</p>
       </div>
     );

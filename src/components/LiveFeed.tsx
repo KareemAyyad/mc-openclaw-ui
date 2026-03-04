@@ -32,9 +32,8 @@ export function LiveFeed({ mobileMode = false, isPortrait = true }: LiveFeedProp
     <aside
       role="complementary"
       aria-label="Live event feed"
-      className={`bg-mc-bg-secondary ${mobileMode ? 'border border-mc-border rounded-xl h-full' : 'border-l border-mc-border'} flex flex-col transition-all duration-300 ease-in-out ${
-        effectiveMinimized ? 'w-12' : mobileMode ? 'w-full' : 'w-80'
-      }`}
+      className={`bg-mc-bg-secondary ${mobileMode ? 'border border-mc-border rounded-xl h-full' : 'border-l border-mc-border'} flex flex-col transition-all duration-300 ease-in-out ${effectiveMinimized ? 'w-12' : mobileMode ? 'w-full' : 'w-80'
+        }`}
     >
       <div className="p-3 border-b border-mc-border">
         <div className="flex items-center gap-1">
@@ -63,9 +62,8 @@ export function LiveFeed({ mobileMode = false, isPortrait = true }: LiveFeedProp
                 onClick={() => setFilter(tab)}
                 role="tab"
                 aria-selected={filter === tab}
-                className={`min-h-11 text-xs rounded-lg uppercase transition-colors ${mobileMode && isPortrait ? 'px-1' : 'px-3'} ${
-                  filter === tab ? 'bg-tm-brand text-white font-medium' : 'text-mc-text-secondary hover:bg-mc-bg-tertiary'
-                }`}
+                className={`min-h-11 text-xs rounded-lg uppercase transition-colors ${mobileMode && isPortrait ? 'px-1' : 'px-3'} ${filter === tab ? 'bg-tm-brand text-white font-medium' : 'text-mc-text-secondary hover:bg-mc-bg-tertiary'
+                  }`}
               >
                 {tab}
               </button>
@@ -87,18 +85,20 @@ export function LiveFeed({ mobileMode = false, isPortrait = true }: LiveFeedProp
   );
 }
 
+import { PlusCircle, UserCheck, ArrowRightLeft, CheckCircle2, MessageSquare, Zap, Bell, Settings, Circle } from 'lucide-react';
+
 function EventItem({ event }: { event: Event }) {
   const getEventIcon = (type: string) => {
     switch (type) {
-      case 'task_created': return '📋';
-      case 'task_assigned': return '👤';
-      case 'task_status_changed': return '🔄';
-      case 'task_completed': return '✅';
-      case 'message_sent': return '💬';
-      case 'agent_joined': return '🎉';
-      case 'agent_status_changed': return '🔔';
-      case 'system': return '⚙️';
-      default: return '📌';
+      case 'task_created': return <PlusCircle className="w-4 h-4 text-mc-accent-cyan" />;
+      case 'task_assigned': return <UserCheck className="w-4 h-4 text-mc-accent-purple" />;
+      case 'task_status_changed': return <ArrowRightLeft className="w-4 h-4 text-mc-accent-yellow" />;
+      case 'task_completed': return <CheckCircle2 className="w-4 h-4 text-mc-accent-green" />;
+      case 'message_sent': return <MessageSquare className="w-4 h-4 text-mc-accent-pink" />;
+      case 'agent_joined': return <Zap className="w-4 h-4 text-mc-accent-cyan" />;
+      case 'agent_status_changed': return <Bell className="w-4 h-4 text-mc-accent-yellow" />;
+      case 'system': return <Settings className="w-4 h-4 text-mc-text-secondary" />;
+      default: return <Circle className="w-4 h-4 text-mc-text-secondary" />;
     }
   };
 
@@ -107,9 +107,8 @@ function EventItem({ event }: { event: Event }) {
 
   return (
     <article
-      className={`p-2.5 rounded-lg border-l-2 animate-slide-in ${
-        isHighlight ? 'bg-mc-bg-tertiary/70 border-tm-brand' : 'bg-transparent border-transparent hover:bg-mc-bg-tertiary/50'
-      }`}
+      className={`p-2.5 bg-white/[0.02] rounded-lg border-l-2 animate-slide-in ${isHighlight ? 'bg-mc-bg-tertiary/70 border-tm-brand' : 'bg-transparent border-transparent hover:bg-mc-bg-tertiary/50'
+        }`}
       aria-label={`${event.type.replace(/_/g, ' ')}: ${event.message}`}
     >
       <div className="flex items-start gap-2">

@@ -7,6 +7,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { Rocket, Pencil, CheckCircle2, FileText, ArrowRightLeft, Inbox, FileEdit } from 'lucide-react';
 import { useVisibleInterval } from '@/hooks/useVisibility';
 import type { TaskActivity } from '@/lib/types';
 
@@ -66,17 +67,17 @@ export function ActivityLog({ taskId }: ActivityLogProps) {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'spawned':
-        return '🚀';
+        return <Rocket className="text-mc-accent-cyan" />;
       case 'updated':
-        return '✏️';
+        return <Pencil className="text-mc-accent-yellow" />;
       case 'completed':
-        return '✅';
+        return <CheckCircle2 className="text-mc-accent-green" />;
       case 'file_created':
-        return '📄';
+        return <FileText className="text-mc-accent-purple" />;
       case 'status_changed':
-        return '🔄';
+        return <ArrowRightLeft className="text-mc-accent-pink" />;
       default:
-        return '📝';
+        return <FileEdit className="text-mc-text-secondary" />;
     }
   };
 
@@ -91,7 +92,7 @@ export function ActivityLog({ taskId }: ActivityLogProps) {
   if (activities.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-mc-text-secondary">
-        <div className="text-4xl mb-2">📝</div>
+        <div className="mb-2"><Inbox className="w-10 h-10" /></div>
         <p>No activity yet</p>
       </div>
     );
@@ -129,8 +130,8 @@ export function ActivityLog({ taskId }: ActivityLogProps) {
             {/* Metadata */}
             {activity.metadata && (
               <div className="mt-2 p-2 bg-mc-bg-tertiary rounded text-xs text-mc-text-secondary font-mono">
-                {typeof activity.metadata === 'string' 
-                  ? activity.metadata 
+                {typeof activity.metadata === 'string'
+                  ? activity.metadata
                   : JSON.stringify(JSON.parse(activity.metadata), null, 2)}
               </div>
             )}

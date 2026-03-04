@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, ChevronRight, GripVertical, ArrowRightLeft, Clock } from 'lucide-react';
+import { Plus, ChevronRight, GripVertical, ArrowRightLeft, Clock, ListTodo } from 'lucide-react';
 import { useMissionControl } from '@/lib/store';
 import { triggerAutoDispatch, shouldTriggerAutoDispatch } from '@/lib/auto-dispatch';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -38,11 +38,13 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
   // Keyboard shortcuts: N = new task, Escape = close modals
   const shortcuts = useMemo(() => [
     { key: 'n', handler: () => { if (!showCreateModal && !editingTask) setShowCreateModal(true); }, description: 'New task' },
-    { key: 'Escape', handler: () => {
-      if (statusMoveTask) setStatusMoveTask(null);
-      else if (editingTask) setEditingTask(null);
-      else if (showCreateModal) setShowCreateModal(false);
-    }, description: 'Close modal' },
+    {
+      key: 'Escape', handler: () => {
+        if (statusMoveTask) setStatusMoveTask(null);
+        else if (editingTask) setEditingTask(null);
+        else if (showCreateModal) setShowCreateModal(false);
+      }, description: 'Close modal'
+    },
   ], [showCreateModal, editingTask, statusMoveTask]);
   useKeyboardShortcuts(shortcuts);
 
@@ -157,9 +159,8 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
                 key={column.id}
                 role="listitem"
                 aria-label={`${column.label} column with ${columnTasks.length} tasks`}
-                className={`flex-1 min-w-[200px] max-w-[280px] flex flex-col bg-mc-bg rounded-xl border border-t-2 transition-all ${column.color} ${
-                  isDragTarget ? 'border-tm-brand/50 bg-tm-brand/5 shadow-glow-sm' : 'border-mc-border/40'
-                }`}
+                className={`flex-1 min-w-[200px] max-w-[280px] flex flex-col bg-mc-bg rounded-xl border border-t-2 transition-all ${column.color} ${isDragTarget ? 'border-tm-brand/50 bg-tm-brand/5 shadow-glow-sm' : 'border-mc-border/40'
+                  }`}
                 onDragOver={(e) => handleDragOver(e, column.id)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, column.id)}
@@ -205,11 +206,10 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
                   role="tab"
                   aria-selected={selected}
                   aria-controls={`tasks-${column.id}`}
-                  className={`min-h-11 px-4 rounded-full border whitespace-nowrap transition-colors ${isPortrait ? 'text-sm' : 'text-xs'} ${
-                    selected
-                      ? 'bg-tm-brand text-white border-tm-brand font-medium shadow-glow-sm'
-                      : 'bg-mc-bg-secondary border-mc-border text-mc-text-secondary hover:border-mc-border hover:text-mc-text'
-                  }`}
+                  className={`min-h-11 px-4 rounded-full border whitespace-nowrap transition-colors ${isPortrait ? 'text-sm' : 'text-xs'} ${selected
+                    ? 'bg-tm-brand text-white border-tm-brand font-medium shadow-glow-sm'
+                    : 'bg-mc-bg-secondary border-mc-border text-mc-text-secondary hover:border-mc-border hover:text-mc-text'
+                    }`}
                 >
                   {column.label} ({count})
                 </button>
@@ -221,7 +221,7 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
             {mobileTasks.length === 0 ? (
               <div className="bg-mc-bg-secondary border border-mc-border rounded-xl">
                 <EmptyState
-                  icon="📋"
+                  icon={<ListTodo className="w-10 h-10 text-mc-text-secondary opacity-70 mx-auto" />}
                   title="No tasks here"
                   description={`No tasks in ${mobileStatus.replace('_', ' ')} status`}
                   action={{ label: 'New Task', onClick: () => setShowCreateModal(true) }}
@@ -267,11 +267,10 @@ export function MissionQueue({ workspaceId, mobileMode = false, isPortrait = tru
                       setStatusMoveTask(null);
                     }}
                     disabled={isCurrent}
-                    className={`w-full min-h-11 px-4 rounded-lg border text-left text-sm transition-colors ${
-                      isCurrent
-                        ? 'border-tm-brand/30 bg-tm-brand/10 text-tm-brand font-medium opacity-60'
-                        : 'border-mc-border bg-mc-bg hover:border-tm-brand/30 hover:bg-tm-brand/5'
-                    }`}
+                    className={`w-full min-h-11 px-4 rounded-lg border text-left text-sm transition-colors ${isCurrent
+                      ? 'border-tm-brand/30 bg-tm-brand/10 text-tm-brand font-medium opacity-60'
+                      : 'border-mc-border bg-mc-bg hover:border-tm-brand/30 hover:bg-tm-brand/5'
+                      }`}
                   >
                     {column.label}
                     {isCurrent && <span className="text-xs ml-2">(current)</span>}
@@ -322,9 +321,8 @@ function TaskCard({ task, onDragStart, onClick, onMoveStatus, isDragging, mobile
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
       aria-label={`Task: ${task.title}, Priority: ${task.priority}, Status: ${task.status}`}
-      className={`group bg-mc-bg-secondary border rounded-xl cursor-pointer transition-all ${
-        isDragging ? 'opacity-40 scale-95 rotate-1' : 'hover:shadow-card-hover'
-      } ${isPlanning ? 'border-mc-accent-purple/30 hover:border-mc-accent-purple/60' : 'border-mc-border/40 hover:border-tm-brand/40'}`}
+      className={`group bg-mc-bg-secondary border rounded-xl cursor-pointer transition-all ${isDragging ? 'opacity-40 scale-95 rotate-1' : 'hover:shadow-card-hover'
+        } ${isPlanning ? 'border-mc-accent-purple/30 hover:border-mc-accent-purple/60' : 'border-mc-border/40 hover:border-tm-brand/40'}`}
     >
       {!mobileMode && (
         <div className="flex items-center justify-center py-1 border-b border-mc-border/20 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">

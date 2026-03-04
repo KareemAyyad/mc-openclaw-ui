@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { AppWindow } from 'lucide-react';
 
 export default function DemoBanner() {
   const [isDemo, setIsDemo] = useState(false);
@@ -9,7 +10,7 @@ export default function DemoBanner() {
     fetch('/api/demo')
       .then(r => r.json())
       .then(data => setIsDemo(data.demo))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   if (!isDemo) return null;
@@ -18,9 +19,10 @@ export default function DemoBanner() {
     <div
       role="status"
       aria-label="Demo mode active"
-      className="tm-gradient text-white text-center py-2.5 px-4 text-sm font-medium z-50 relative"
+      className="tm-gradient text-white text-center py-2.5 px-4 text-sm font-medium z-50 relative backdrop-blur-sm shadow-md"
     >
       <span className="inline-flex items-center gap-2">
+        <AppWindow className="w-4 h-4" />
         <span className="w-2 h-2 bg-white rounded-full animate-pulse" aria-hidden="true" />
         Live Demo — AI teammates are working in real-time. This is a read-only simulation.
       </span>
