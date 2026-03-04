@@ -2,54 +2,37 @@
 
 import { useState, useEffect } from 'react';
 import { Database, Search, FileJson, FileText, AlertCircle, RefreshCw, ChevronRight } from 'lucide-react';
-
-const agentMemoryFiles: Record<string, string[]> = {
-    leadgen: ['researched-companies.jsonl', 'vertical-rotation.txt', 'exec-moves.jsonl'],
-    outbound: ['active-sequences.json', 'sequence-performance.jsonl', 'templates-that-work.md'],
-    content: ['content-calendar.json', 'topics-used.txt', 'performance-log.jsonl'],
-    intel: ['competitor-timeline.jsonl', 'threat-register.json'],
-    onboarding: ['user-journeys.jsonl', 'pql-log.jsonl'],
-    fundraise: ['investor-interactions.jsonl', 'pipeline-snapshots.jsonl'],
-};
-
-const agents = [
-    { id: 'leadgen', name: 'LeadGen', emoji: '🔍', color: 'bg-emerald-50 text-emerald-600' },
-    { id: 'outbound', name: 'Outbound', emoji: '💰', color: 'bg-blue-50 text-blue-600' },
-    { id: 'content', name: 'Content', emoji: '✍️', color: 'bg-indigo-50 text-indigo-600' },
-    { id: 'intel', name: 'Intel', emoji: '🕵️', color: 'bg-purple-50 text-purple-600' },
-    { id: 'onboarding', name: 'Onboarding', emoji: '⚡', color: 'bg-amber-50 text-amber-600' },
-    { id: 'fundraise', name: 'Fundraise', emoji: '🤝', color: 'bg-rose-50 text-rose-600' },
-];
+import { TEAMS, AGENTS, memoryFiles, AgentTeam } from '@/lib/agentRegistry';
 
 export default function MemoryPage() {
-    const [selectedAgent, setSelectedAgent] = useState('leadgen');
-    const [selectedFile, setSelectedFile] = useState(agentMemoryFiles['leadgen'][0]);
-    const [fileData, setFileData] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState('leadgen');
+  const [selectedFile, setSelectedFile] = useState(memoryFiles['leadgen'][0]);
+  const [fileData, setFileData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        // Reset file selection when agent changes
-        if (!agentMemoryFiles[selectedAgent].includes(selectedFile)) {
-            setSelectedFile(agentMemoryFiles[selectedAgent][0]);
-        }
-    }, [selectedAgent, selectedFile]);
+  useEffect(() => {
+    // Reset file selection when agent changes
+    if (!memoryFiles[selectedAgent].includes(selectedFile)) {
+      setSelectedFile(memoryFiles[selectedAgent][0]);
+    }
+  }, [selectedAgent, selectedFile]);
 
-    useEffect(() => {
-        async function loadFile() {
-            if (!selectedAgent || !selectedFile) return;
+  useEffect(() => {
+    async function loadFile() {
+      if (!selectedAgent || !selectedFile) return;
 
-            setLoading(true);
-            setError(null);
+      setLoading(true);
+      setError(null);
 
-            try {
-                const res = await fetch(`/api/memory?agent=${selectedAgent}&file=${selectedFile}`);
+      try {
+        const res = await fetch(`/api/memory?agent=${selectedAgent}&file=${selectedFile}`);
         const data = await res.json();
-        
+
         if (!res.ok) {
           throw new Error(data.error || 'Failed to load file');
         }
-        
+
         setFileData(data);
       } catch (err: any) {
         setError(err.message);
@@ -73,43 +56,62 @@ export default function MemoryPage() {
           <p className="text-sm text-slate-500 mt-1">Agent workspace file explorer</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
-          {agents.map((agent) => (
-            <div key={agent.id}>
-              <button 
-                onClick={() => setSelectedAgent(agent.id)}
-                className={`flex items-center w-full px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                  selectedAgent === agent.id ? 'bg-white shadow-sm border border-slate-200 text-slate-900' : 'text-slate-600 hover:bg-slate-200/50'
-                }`}
-              >
-                <span className={`w-6 h-6 rounded flex items-center justify-center mr-2 ${agent.color}`}>{agent.emoji}</span>
-                {agent.name}
-              </button>
+        <div className="flex-1 overflow-y-auto p-4">
+          {(Object.keys(TEAMS) as AgentTeam[]).map((teamId) => {
+            const teamMeta = TEAMS[teamId];
+            const teamAgents = Object.keys(AGENTS).filter(id => AGENTS[id].team === teamId);
 
-              {selectedAgent === agent.id && (
-                <div className="mt-2 ml-4 pl-4 border-l-2 border-slate-200 space-y-1 animate-fade-in">
-                  {agentMemoryFiles[agent.id].map(file => (
-                    <button
-                      key={file}
-                      onClick={() => setSelectedFile(file)}
-                      className={`w-full text-left px-3 py-1.5 rounded-md text-sm truncate flex items-center ${
-                        selectedFile === file 
-                          ? 'bg-mc-accent/10 text-mc-accent font-medium' 
-                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
-                      }`}
-                    >
-                      {file.endsWith('.jsonl') || file.endsWith('.json') ? (
-                        <FileJson className="w-3.5 h-3.5 mr-2 opacity-70" />
-                      ) : (
-                        <FileText className="w-3.5 h-3.5 mr-2 opacity-70" />
-                      )}
-                      {file}
-                    </button>
-                  ))}
+            if (teamAgents.length === 0) return null;
+
+            return (
+              <div key={teamId} className="mb-6 animate-fade-in">
+                <div className={`px-3 py-1.5 mb-2 rounded-md text-xs font-bold uppercase tracking-wider ${teamMeta.bgClass} ${teamMeta.textClass} flex items-center gap-2`}>
+                  {teamMeta.icon} {teamMeta.label}
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="space-y-1 pl-1">
+                  {teamAgents.map((agentId) => {
+                    const agent = AGENTS[agentId];
+                    return (
+                      <div key={agentId}>
+                        <button
+                          onClick={() => setSelectedAgent(agentId)}
+                          className={`flex items-center w-full px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${selectedAgent === agentId ? 'bg-white shadow-sm border border-slate-200 text-slate-900' : 'text-slate-600 hover:bg-slate-200/50'
+                            }`}
+                        >
+                          <span className={`w-6 h-6 rounded flex items-center justify-center mr-2 ${teamMeta.bgClass} ${teamMeta.textClass}`}>
+                            {agent.emoji}
+                          </span>
+                          <span className="capitalize">{agentId}</span>
+                        </button>
+
+                        {selectedAgent === agentId && (
+                          <div className="mt-2 ml-4 pl-4 border-l-2 border-slate-200 space-y-1 animate-fade-in relative z-10">
+                            {memoryFiles[agentId].map(file => (
+                              <button
+                                key={file}
+                                onClick={() => setSelectedFile(file)}
+                                className={`w-full text-left px-3 py-1.5 rounded-md text-sm truncate flex items-center ${selectedFile === file
+                                    ? 'bg-mc-accent/10 text-mc-accent font-medium'
+                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
+                                  }`}
+                              >
+                                {file.endsWith('.jsonl') || file.endsWith('.json') ? (
+                                  <FileJson className="w-3.5 h-3.5 mr-2 opacity-70 shrink-0" />
+                                ) : (
+                                  <FileText className="w-3.5 h-3.5 mr-2 opacity-70 shrink-0" />
+                                )}
+                                <span className="truncate">{file}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -128,14 +130,19 @@ export default function MemoryPage() {
               )}
               {selectedFile}
             </span>
+            {fileData?.source && (
+              <span className="ml-4 px-2 py-0.5 rounded text-xs font-mono bg-slate-100 text-slate-500 border border-slate-200">
+                Source: {fileData.source}
+              </span>
+            )}
           </div>
-          
-          <button 
+
+          <button
             onClick={() => {
               setLoading(true);
               // Small artificial delay to show loading state on manual refresh
               setTimeout(() => setLoading(false), 500);
-            }} 
+            }}
             className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -190,7 +197,7 @@ export default function MemoryPage() {
                   </table>
                 </div>
               ) : (
-                <div className="p-8 font-mono text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
+                <div className="p-8 font-mono text-sm leading-relaxed text-slate-700 whitespace-pre-wrap flex-wrap break-words min-w-0">
                   {fileData.data}
                 </div>
               )}

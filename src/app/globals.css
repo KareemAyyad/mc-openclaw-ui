@@ -18,6 +18,12 @@
   --mc-accent-pink: #e05599;
   --mc-accent-cyan: #22c997;
   --tm-brand: #4f8ff7;
+
+  /* Team Colors (Dark) */
+  --team-sales: #10b981;
+  --team-marketing: #6366f1;
+  --team-operations: #f59e0b;
+  --team-engineering: #0ea5e9;
 }
 
 /* Light theme */
@@ -35,6 +41,12 @@
   --mc-accent-purple: #8250df;
   --mc-accent-pink: #bf3989;
   --mc-accent-cyan: #1a7f37;
+
+  /* Team Colors (Light) */
+  --team-sales: #10b981;
+  --team-marketing: #6366f1;
+  --team-operations: #f59e0b;
+  --team-engineering: #0ea5e9;
 }
 
 * {
@@ -80,28 +92,36 @@ body {
 }
 
 .status-working {
-  @apply bg-mc-accent-green/20 text-mc-accent-green border border-mc-accent-green/50;
+  background-color: color-mix(in srgb, var(--mc-accent-green) 20%, transparent);
+  color: var(--mc-accent-green);
+  border: 1px solid color-mix(in srgb, var(--mc-accent-green) 50%, transparent);
 }
 
 .status-offline {
-  @apply bg-mc-accent-red/20 text-mc-accent-red border border-mc-accent-red/50;
+  background-color: color-mix(in srgb, var(--mc-accent-red) 20%, transparent);
+  color: var(--mc-accent-red);
+  border: 1px solid color-mix(in srgb, var(--mc-accent-red) 50%, transparent);
 }
 
 /* Priority badge styles */
 .priority-low {
-  @apply bg-mc-text-secondary/20 text-mc-text-secondary;
+  background-color: color-mix(in srgb, var(--mc-text-secondary) 20%, transparent);
+  color: var(--mc-text-secondary);
 }
 
 .priority-normal {
-  @apply bg-mc-accent/20 text-mc-accent;
+  background-color: color-mix(in srgb, var(--mc-accent) 20%, transparent);
+  color: var(--mc-accent);
 }
 
 .priority-high {
-  @apply bg-mc-accent-yellow/20 text-mc-accent-yellow;
+  background-color: color-mix(in srgb, var(--mc-accent-yellow) 20%, transparent);
+  color: var(--mc-accent-yellow);
 }
 
 .priority-urgent {
-  @apply bg-mc-accent-red/20 text-mc-accent-red;
+  background-color: color-mix(in srgb, var(--mc-accent-red) 20%, transparent);
+  color: var(--mc-accent-red);
 }
 
 /* Task status column colors */
@@ -127,8 +147,15 @@ body {
 
 /* Animations */
 @keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .animate-pulse-soft {
@@ -140,6 +167,7 @@ body {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -185,8 +213,15 @@ body {
 
 /* Smooth page transitions */
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -207,4 +242,41 @@ body {
 
 .skip-link:focus {
   top: 0;
+}
+
+/* Shimmer Loading Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+}
+
+.shimmer-bg {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--mc-bg-secondary);
+}
+
+.shimmer-bg::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.05) 20%,
+      rgba(255, 255, 255, 0.1) 60%,
+      rgba(255, 255, 255, 0));
+  animation: shimmer 2s infinite;
 }

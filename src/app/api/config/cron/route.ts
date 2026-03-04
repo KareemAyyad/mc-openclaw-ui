@@ -7,48 +7,48 @@ import path from 'path';
  * as the dynamic source of truth for the /schedule page.
  */
 export async function GET() {
-    try {
-        const cronScriptPath = process.env.CRON_SCRIPT_PATH
-            || path.join(process.cwd(), '..', 'openclaw-kareem', 'scripts', 'cron-setup.sh');
+  try {
+    const cronScriptPath = process.env.CRON_SCRIPT_PATH
+      || path.join(process.cwd(), '..', 'openclaw-kareem', 'scripts', 'cron-setup.sh');
 
-        if (!fs.existsSync(cronScriptPath)) {
-            console.warn(`[Config API] cron-setup.sh not found at ${cronScriptPath}`);
-      return NextResponse.json({ 
-        error: 'cron-setup.sh not found', 
+    if (!fs.existsSync(cronScriptPath)) {
+      console.warn(`[Config API] cron-setup.sh not found at ${cronScriptPath}`);
+      return NextResponse.json({
+        error: 'cron-setup.sh not found',
         path: cronScriptPath,
-        fallbackData: true 
+        fallbackData: true
       });
     }
 
     const scriptContent = fs.readFileSync(cronScriptPath, 'utf8');
-    
+
     // We will parse the bash script by looking for `openclaw cron add` commands
     // and extracting the relevant flags via Regex.
     const jobs: any[] = [];
-    
+
     // Split by openclaw cron add to process each command block
     const commandBlocks = scriptContent.split('openclaw cron add').slice(1);
-    
+
     for (const block of commandBlocks) {
       // Extract --name "..."
       const nameMatch = block.match(/--name\s+"([^"]+)"/);
       const name = nameMatch ? nameMatch[1] : 'Unknown Task';
-      
+
       // Extract --cron "..."
       const cronMatch = block.match(/--cron\s+"([^"]+)"/);
       const cronExpression = cronMatch ? cronMatch[1] : '* * * * *';
-      
+
       // Extract --agent ...
       const agentMatch = block.match(/--agent\s+([a-zA-Z0-9_-]+)/);
       const agent = agentMatch ? agentMatch[1] : 'unknown';
-      
+
       // Parse the cron expression to determine times and days
       const parts = cronExpression.split(' ');
       if (parts.length >= 5) {
         const minute = parts[0];
         const hour = parts[1];
         const daysOfWeek = parts[4];
-        
+
         // Format time string (e.g., "02:30")
         // Handling basic explicit values like "2" or "14". 
         // We skip complex cases like "*/6" for the UI grid if they don't map cleanly to a daily visual.
@@ -56,7 +56,7 @@ export async function GET() {
         if (!hour.includes('*') && !hour.includes('/')) {
           timeString = `${hour.padStart(2, '0')}:${minute === '0' || minute === '*' ? '00' : minute.padStart(2, '0')}`;
         } else if (hour.includes('*/')) {
-           timeString = `Every ${hour.replace('*/', '')}h`;
+          timeString = `Every ${hour.replace('*/', '')}h`;
         }
 
         // Parse runDays (0-6 mapping to Sun-Sat)
@@ -78,9 +78,9 @@ export async function GET() {
             }
           }
         }
-        
+
         // Basic dedup
-        runDays = [...new Set(runDays)];
+        runDays = Array.from(new Set(runDays));
 
         // Assign visual styling based on agent
         const colorMap: Record<string, string> = {

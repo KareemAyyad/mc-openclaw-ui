@@ -7,7 +7,8 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
 COPY package*.json ./
-RUN npm ci
+COPY prisma ./prisma/
+RUN npm ci && npx prisma generate
 
 FROM base AS prod-deps
 RUN apt-get update \

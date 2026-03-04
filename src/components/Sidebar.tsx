@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Network, Calendar, LineChart, Database } from 'lucide-react';
+import { LayoutGrid, Network, Calendar, LineChart, Database, MessageSquare } from 'lucide-react';
 
 const navItems = [
-    { name: 'Board', href: '/', icon: LayoutGrid },
+    { name: 'Home', href: '/', icon: LayoutGrid },
     { name: 'Fleet', href: '/fleet', icon: Network },
     { name: 'Schedule', href: '/schedule', icon: Calendar },
-    { name: 'Pipeline', href: '/pipeline', icon: LineChart },
+    { name: 'Metrics', href: '/pipeline', icon: LineChart },
+    { name: 'Comms', href: '/comms', icon: MessageSquare },
     { name: 'Memory', href: '/memory', icon: Database },
 ];
 
@@ -18,11 +19,12 @@ export default function Sidebar() {
     return (
         <aside className="w-64 glass-sidebar h-screen sticky top-0 flex flex-col pt-6 pb-4 z-50">
             <div className="px-6 mb-8 flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-mc-accent flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                    A
+                <div className="w-8 h-8 rounded-lg bg-mc-accent flex items-center justify-center text-white font-bold text-sm shadow-sm relative overflow-hidden">
+                    <span className="relative z-10">MC</span>
+                    <div className="absolute inset-0 bg-white/20 blur-sm translate-y-full hover:translate-y-0 transition-transform"></div>
                 </div>
                 <span className="font-heading font-bold text-xl tracking-tight text-mc-text">
-                    Autensa
+                    Mission Control
                 </span>
             </div>
 
@@ -36,8 +38,8 @@ export default function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                                    ? 'bg-mc-accent/10 text-mc-accent'
-                                    : 'text-mc-text-secondary hover:text-mc-text hover:bg-mc-text-secondary/5'
+                                ? 'bg-mc-accent/10 text-mc-accent'
+                                : 'text-mc-text-secondary hover:text-mc-text hover:bg-mc-text-secondary/5'
                                 }`}
                         >
                             <Icon className={`w-5 h-5 ${isActive ? 'text-mc-accent' : 'text-mc-text-secondary'}`} />
@@ -49,9 +51,10 @@ export default function Sidebar() {
 
             <div className="mt-auto px-6">
                 <div className="text-xs text-mc-text-secondary font-medium">
-                    Teammates.ai Fleet View
+                    10-Agent Fleet
                 </div>
-                <div className="text-[10px] text-mc-text-secondary/60 mt-1">
+                <div className="text-[10px] text-mc-text-secondary/60 mt-1 flex items-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse-slow"></div>
                     Connected to OpenClaw
                 </div>
             </div>

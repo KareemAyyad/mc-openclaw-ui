@@ -1,7 +1,8 @@
 'use client';
 
-import { Calendar, Clock, ArrowRight, Activity, Zap, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, Activity, Zap, Shield, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { TEAMS, AGENTS, AgentTeam } from '@/lib/agentRegistry';
 
 interface CronJob {
   time: string;
@@ -14,10 +15,10 @@ interface CronJob {
 }
 
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const hours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 
 export default function SchedulePage() {
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
+  const [activeTeam, setActiveTeam] = useState<AgentTeam | 'all'>('all');
   const [scheduleData, setScheduleData] = useState<CronJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [sourcePath, setSourcePath] = useState('');
@@ -44,9 +45,18 @@ export default function SchedulePage() {
 
   if (loading) return <div className="p-8 pb-20 max-w-7xl mx-auto min-h-screen pt-32 text-center text-slate-500">Syncing with cron-setup.sh...</div>;
 
+  const filteredJobs = scheduleData
+    .filter(job => job.runDays.includes(selectedDay))
+    .filter(job => {
+      if (activeTeam === 'all') return true;
+      const agentMeta = AGENTS[job.agentId.toLowerCase()];
+      return agentMeta?.team === activeTeam;
+    })
+    .sort((a, b) => a.time.localeCompare(b.time));
+
   return (
     <div className="p-8 pb-20 max-w-7xl mx-auto min-h-screen">
-      <header className="mb-10 animate-fade-in relative z-10 flex justify-between items-end">
+      <header className="mb-10 animate-fade-in relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
           <h1 className="text-4xl font-heading font-bold text-slate-900 tracking-tight mb-2">
             Cron Schedule
@@ -58,19 +68,49 @@ export default function SchedulePage() {
           {sourcePath && <p className="text-slate-400 text-xs mt-1">Parsed from {sourcePath.split('/').pop()}</p>}
         </div>
 
-        <div className="flex bg-white rounded-xl shadow-sm border border-slate-200 p-1">
-          {days.map((day, idx) => (
-            <button
-              key={day}
-              onClick={() => setSelectedDay(idx)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedDay === idx
+        <div className="flex flex-col gap-3">
+          {/* Day Selector */}
+          <div className="flex bg-white rounded-xl shadow-sm border border-slate-200 p-1 self-end">
+            {days.map((day, idx) => (
+              <button
+                key={day}
+                onClick={() => setSelectedDay(idx)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${selectedDay === idx
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-                }`}
+                  }`}
+              >
+                {day.substring(0, 3)}
+              </button>
+            ))}
+          </div>
+
+          {/* Team Filter */}
+          <div className="flex items-center gap-2 self-end">
+            <span className="text-xs font-semibold text-slate-400 uppercase flex items-center mr-2">
+              <Filter className="w-3 h-3 mr-1" /> Filter
+            </span>
+            <button
+              onClick={() => setActiveTeam('all')}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${activeTeam === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
             >
-              {day.substring(0, 3)}
+              All Teams
             </button>
-          ))}
+            {(Object.keys(TEAMS) as AgentTeam[]).map((teamId) => {
+              const meta = TEAMS[teamId];
+              const isActive = activeTeam === teamId;
+              return (
+                <button
+                  key={teamId}
+                  onClick={() => setActiveTeam(teamId)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center ${isActive ? meta.bgClass + ' ' + meta.textClass + ' ring-2 ring-offset-1 ring-' + meta.bgClass.split('-')[1] + '-500' : 'bg-white border text-slate-600 hover:bg-slate-50'}`}
+                >
+                  <span className="mr-1.5">{meta.icon}</span>
+                  {meta.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </header>
 
@@ -78,6 +118,7 @@ export default function SchedulePage() {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden animate-scale-in">
         <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <h2 className="text-xl font-bold text-slate-900">{days[selectedDay]} Schedule</h2>
+          <span className="text-sm font-medium text-slate-500">{filteredJobs.length} jobs</span>
         </div>
 
         <div className="p-8 relative">
@@ -85,10 +126,16 @@ export default function SchedulePage() {
           <div className="absolute left-16 top-8 bottom-8 w-px bg-slate-200 rounded-full" />
 
           <div className="space-y-6">
-            {scheduleData
-              .filter(job => job.runDays.includes(selectedDay))
-              .sort((a, b) => a.time.localeCompare(b.time))
-              .map((job, idx) => (
+            {filteredJobs.map((job, idx) => {
+              const agentMeta = AGENTS[job.agentId.toLowerCase()];
+              const teamMeta = agentMeta ? TEAMS[agentMeta.team] : null;
+
+              // Use team styling if available, fallback to the original parsing logic
+              const bgClass = teamMeta ? teamMeta.bgClass : `bg-${job.color.split('-')[1] || 'slate'}-50`;
+              const borderClass = teamMeta ? teamMeta.borderClass : `border-${job.color.split('-')[1] || 'slate'}-200`;
+              const textClass = teamMeta ? teamMeta.textClass : `text-${job.color.split('-')[1] || 'slate'}-700`;
+
+              return (
                 <div key={idx} className="flex group relative animate-slide-in-right" style={{ animationDelay: `${idx * 50}ms` }}>
 
                   {/* Time */}
@@ -97,29 +144,36 @@ export default function SchedulePage() {
                   </div>
 
                   {/* Timeline Dot */}
-                  <div className="absolute left-16 w-3 h-3 rounded-full bg-white border-2 border-slate-300 mt-4 -translate-x-1.5 group-hover:border-mc-accent group-hover:bg-mc-accent transition-colors shadow-sm" />
+                  <div className={`absolute left-16 w-3 h-3 rounded-full bg-white border-2 border-slate-300 mt-4 -translate-x-1.5 transition-colors shadow-sm ${teamMeta ? `group-hover:border-${teamMeta.bgClass.split('-')[1]}-500 group-hover:bg-${teamMeta.bgClass.split('-')[1]}-500` : 'group-hover:border-mc-accent group-hover:bg-mc-accent'}`} />
 
                   {/* Card */}
-                  <div className={`flex-1 ml-6 p-5 rounded-2xl border ${job.color} transition-transform group-hover:-translate-y-1 group-hover:shadow-md`}>
+                  <div className={`flex-1 ml-6 p-5 rounded-2xl border transition-transform group-hover:-translate-y-1 group-hover:shadow-md ${bgClass} ${borderClass}`}>
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-sm">
+                        <span className={`font-bold text-sm bg-white/80 px-2 py-0.5 rounded border border-black/5 shadow-sm flex items-center ${textClass}`}>
+                          {agentMeta && <span className="mr-1.5">{agentMeta.emoji}</span>}
                           {job.agent}
                         </span>
+                        {teamMeta && (
+                          <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-white/50 ${textClass}`}>
+                            {teamMeta.label}
+                          </span>
+                        )}
                       </div>
-                      <div className="text-xs font-mono font-medium opacity-70 bg-black/5 px-2 py-1 rounded-md">{job.cronExpression}</div>
+                      <div className="text-xs font-mono font-medium opacity-70 bg-black/5 px-2 py-1 rounded-md text-slate-700">{job.cronExpression}</div>
                     </div>
 
-                    <h3 className="text-lg font-bold mt-1 tracking-tight">{job.task}</h3>
+                    <h3 className={`text-lg font-bold mt-1 tracking-tight ${textClass}`}>{job.task}</h3>
                   </div>
                 </div>
-              ))}
+              );
+            })}
 
-            {scheduleData.filter(job => job.runDays.includes(selectedDay)).length === 0 && (
-              <div className="text-center py-20 text-slate-500 flex flex-col items-center">
+            {filteredJobs.length === 0 && (
+              <div className="text-center py-20 text-slate-500 flex flex-col items-center animate-fade-in">
                 <Clock className="w-12 h-12 mb-4 text-slate-300" />
-                <p className="font-medium">No scheduled jobs for {days[selectedDay]}</p>
-                <p className="text-sm mt-1">Agents will only run on explicit heartbeat triggers.</p>
+                <p className="font-medium text-lg text-slate-700">No scheduled jobs</p>
+                <p className="text-sm mt-1">Agents will only run on explicit heartbeat triggers or active filter mismatch.</p>
               </div>
             )}
           </div>
