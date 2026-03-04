@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, ChevronRight, ChevronLeft, Zap, ZapOff, Loader2, Search } from 'lucide-react';
+import { Plus, ChevronRight, ChevronLeft, Zap, ZapOff, Loader2, Search, Bot, Cpu, Terminal, Shield } from 'lucide-react';
 import { useMissionControl } from '@/lib/store';
 import type { Agent, AgentStatus, OpenClawSession } from '@/lib/types';
 import { AgentModal } from './AgentModal';
@@ -11,9 +11,18 @@ type FilterTab = 'all' | 'working' | 'standby';
 
 interface AgentsSidebarProps {
   workspaceId?: string;
+  workspaceId?: string;
   mobileMode?: boolean;
   isPortrait?: boolean;
 }
+
+const getAgentIcon = (role: string = '') => {
+  const lowercaseRole = role.toLowerCase();
+  if (lowercaseRole.includes('planner') || lowercaseRole.includes('manager') || lowercaseRole.includes('orchestrator')) return <Cpu className="w-5 h-5 text-mc-accent-cyan" />;
+  if (lowercaseRole.includes('coder') || lowercaseRole.includes('developer') || lowercaseRole.includes('engineer')) return <Terminal className="w-5 h-5 text-mc-accent-purple" />;
+  if (lowercaseRole.includes('reviewer') || lowercaseRole.includes('tester') || lowercaseRole.includes('qa')) return <Shield className="w-5 h-5 text-mc-accent-green" />;
+  return <Bot className="w-5 h-5 text-mc-text-secondary" />;
+};
 
 export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = true }: AgentsSidebarProps) {
   const { agents, selectedAgent, setSelectedAgent, agentOpenClawSessions, setAgentOpenClawSession } = useMissionControl();
@@ -114,11 +123,10 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
 
   return (
     <aside
-      className={`bg-mc-bg-secondary ${mobileMode ? 'border border-mc-border rounded-lg h-full' : 'border-r border-mc-border'} flex flex-col transition-all duration-300 ease-in-out ${
-        effectiveMinimized ? 'w-12' : mobileMode ? 'w-full' : 'w-64'
-      }`}
+      className={`glass-sidebar ${mobileMode ? 'border border-white/5 rounded-lg h-full' : 'border-r border-white/5'} flex flex-col transition-all duration-300 ease-in-out z-10 ${effectiveMinimized ? 'w-12' : mobileMode ? 'w-full' : 'w-64'
+        }`}
     >
-      <div className="p-3 border-b border-mc-border">
+      <div className="p-3 border-b border-white/5 bg-white/[0.02]">
         <div className="flex items-center">
           {!mobileMode && (
             <button
@@ -140,11 +148,11 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
         {!effectiveMinimized && (
           <>
             {activeSubAgents > 0 && (
-              <div className="mb-3 mt-3 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-green-400">●</span>
-                  <span className="text-mc-text">Active Sub-Agents:</span>
-                  <span className="font-bold text-green-400">{activeSubAgents}</span>
+              <div className="mb-3 mt-3 px-3 py-2 status-working rounded-lg">
+                <div className="flex items-center gap-2 text-sm max-w-full">
+                  <span className="animate-pulse">●</span>
+                  <span className="truncate">Active Sub-Agents:</span>
+                  <span className="font-bold">{activeSubAgents}</span>
                 </div>
               </div>
             )}
@@ -154,9 +162,8 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
                 <button
                   key={tab}
                   onClick={() => setFilter(tab)}
-                  className={`min-h-11 text-xs rounded uppercase ${mobileMode && isPortrait ? 'px-1' : 'px-3'} ${
-                    filter === tab ? 'bg-mc-accent text-mc-bg font-medium' : 'text-mc-text-secondary hover:bg-mc-bg-tertiary'
-                  }`}
+                  className={`min-h-11 text-xs rounded uppercase transition-colors ${mobileMode && isPortrait ? 'px-1' : 'px-3'} ${filter === tab ? 'bg-mc-accent-cyan/15 text-mc-accent-cyan border border-mc-accent-cyan/30 font-medium' : 'text-mc-text-secondary hover:bg-white/5 border border-transparent'
+                    }`}
                 >
                   {tab}
                 </button>
@@ -166,7 +173,7 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+      <div className="flex-1 overflow-y-auto p-2 space-y-1 hide-scrollbar">
         {filteredAgents.map((agent) => {
           const openclawSession = agentOpenClawSessions[agent.id];
 
@@ -181,15 +188,16 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
                   className="relative group"
                   title={`${agent.name} - ${agent.role}`}
                 >
-                  <span className="text-2xl">{agent.avatar_emoji}</span>
-                  {openclawSession && <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-mc-bg-secondary" />}
-                  {!!agent.is_master && <span className="absolute -top-1 -right-1 text-xs text-mc-accent-yellow">★</span>}
+                  <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center filter drop-shadow">
+                    {getAgentIcon(agent.role)}
+                  </div>
+                  {openclawSession && <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-mc-accent-green rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)] border border-black/50" />}
+                  {!!agent.is_master && <span className="absolute -top-1 -right-1 text-xs text-mc-accent-yellow drop-shadow-md">★</span>}
                   <span
-                    className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full ${
-                      agent.status === 'working' ? 'bg-mc-accent-green' : agent.status === 'standby' ? 'bg-mc-text-secondary' : 'bg-gray-500'
-                    }`}
+                    className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full ${agent.status === 'working' ? 'bg-mc-accent-cyan shadow-[0_0_5px_rgba(34,211,238,0.8)]' : agent.status === 'standby' ? 'bg-mc-text-secondary' : 'bg-mc-accent-red/50'
+                      }`}
                   />
-                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-mc-bg text-mc-text text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 border border-mc-border">
+                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 glass-panel text-mc-text text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">
                     {agent.name}
                   </div>
                 </button>
@@ -199,7 +207,7 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
 
           const isConnecting = connectingAgentId === agent.id;
           return (
-            <div key={agent.id} className={`w-full rounded hover:bg-mc-bg-tertiary transition-colors ${selectedAgent?.id === agent.id ? 'bg-mc-bg-tertiary' : ''}`}>
+            <div key={agent.id} className={`w-full rounded-xl transition-all border ${selectedAgent?.id === agent.id ? 'bg-mc-accent-cyan/10 border-mc-accent-cyan/20' : 'border-transparent hover:bg-white/5 hover:border-white/10'}`}>
               <button
                 onClick={() => {
                   setSelectedAgent(agent);
@@ -207,9 +215,11 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
                 }}
                 className="w-full flex items-center gap-3 p-3 text-left min-h-11"
               >
-                <div className="text-2xl relative">
-                  {agent.avatar_emoji}
-                  {openclawSession && <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-mc-bg-secondary" />}
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center filter drop-shadow group-hover:bg-white/10 transition-colors">
+                    {getAgentIcon(agent.role)}
+                  </div>
+                  {openclawSession && <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-mc-accent-green shadow-[0_0_8px_rgba(16,185,129,0.5)] rounded-full border border-black/50" />}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -235,11 +245,10 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
                   <button
                     onClick={(e) => handleConnectToOpenClaw(agent, e)}
                     disabled={isConnecting}
-                    className={`w-full min-h-11 flex items-center justify-center gap-2 px-2 rounded text-xs transition-colors ${
-                      openclawSession
-                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                        : 'bg-mc-bg text-mc-text-secondary hover:bg-mc-bg-tertiary hover:text-mc-text'
-                    }`}
+                    className={`w-full min-h-11 flex items-center justify-center gap-2 px-2 rounded-lg text-xs transition-colors border ${openclawSession
+                        ? 'bg-mc-accent-green/10 text-mc-accent-green border-mc-accent-green/20 hover:bg-mc-accent-green/20'
+                        : 'bg-black/20 text-mc-text-secondary border-white/5 hover:bg-white/5 hover:border-white/10 hover:text-mc-text'
+                      }`}
                   >
                     {isConnecting ? (
                       <>
@@ -266,19 +275,19 @@ export function AgentsSidebar({ workspaceId, mobileMode = false, isPortrait = tr
       </div>
 
       {!effectiveMinimized && (
-        <div className="p-3 border-t border-mc-border space-y-2">
+        <div className="p-3 border-t border-white/5 space-y-2 bg-white/[0.02]">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="w-full min-h-11 flex items-center justify-center gap-2 px-3 bg-mc-bg-tertiary hover:bg-mc-border rounded text-sm text-mc-text-secondary hover:text-mc-text transition-colors"
+            className="w-full min-h-11 flex items-center justify-center gap-2 px-3 border border-white/10 hover:border-mc-accent-cyan/30 hover:bg-mc-accent-cyan/5 rounded-xl text-sm text-mc-text-secondary hover:text-mc-accent-cyan transition-colors group"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
             Add Agent
           </button>
           <button
             onClick={() => setShowDiscoverModal(true)}
-            className="w-full min-h-11 flex items-center justify-center gap-2 px-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            className="w-full min-h-11 flex items-center justify-center gap-2 px-3 border border-mc-accent-purple/20 hover:border-mc-accent-purple/40 hover:bg-mc-accent-purple/10 rounded-xl text-sm text-mc-accent-purple hover:text-mc-accent-purple/80 transition-colors group"
           >
-            <Search className="w-4 h-4" />
+            <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
             Import from Gateway
           </button>
         </div>

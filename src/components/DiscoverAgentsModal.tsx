@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Search, Download, Check, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { X, Search, Download, Check, AlertCircle, Loader2, RefreshCw, Link as LinkIcon, Bot } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useMissionControl } from '@/lib/store';
 import type { DiscoveredAgent } from '@/lib/types';
 
@@ -121,13 +122,19 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
   const availableCount = agents.filter((a) => !a.already_imported).length;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-3 sm:p-4">
-      <div className="bg-mc-bg-secondary border border-mc-border rounded-t-xl sm:rounded-lg w-full max-w-2xl max-h-[88vh] sm:max-h-[80vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-3 sm:p-4 animate-fade-in">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="glass-panel border-white/10 rounded-t-2xl sm:rounded-2xl w-full max-w-2xl max-h-[88vh] sm:max-h-[80vh] flex flex-col pb-[env(safe-area-inset-bottom)] sm:pb-0 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
+      >
+        <div className="h-1 w-full bg-gradient-to-r from-mc-accent-cyan via-mc-accent-purple to-mc-accent-cyan opacity-50 block" />
+
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-mc-border">
+        <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/[0.02]">
           <div>
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Search className="w-5 h-5 text-mc-accent" />
+              <Search className="w-5 h-5 text-mc-accent-cyan" />
               Discover Gateway Agents
             </h2>
             <p className="text-sm text-mc-text-secondary mt-1">
@@ -136,7 +143,7 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-mc-bg-tertiary rounded"
+            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -186,7 +193,7 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={discover}
-                    className="min-h-11 flex items-center gap-1 px-3 py-2 text-xs text-mc-text-secondary hover:text-mc-text hover:bg-mc-bg-tertiary rounded"
+                    className="min-h-11 flex items-center gap-1 px-3 py-2 text-xs text-mc-text-secondary hover:text-mc-text hover:bg-white/5 rounded-lg border border-transparent transition-colors"
                   >
                     <RefreshCw className="w-3 h-3" />
                     Refresh
@@ -195,13 +202,13 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
                     <>
                       <button
                         onClick={selectAllAvailable}
-                        className="min-h-11 px-3 py-2 text-xs text-mc-accent hover:bg-mc-accent/10 rounded"
+                        className="min-h-11 px-3 py-2 text-xs text-mc-accent-cyan hover:bg-mc-accent-cyan/10 rounded-lg transition-colors"
                       >
                         Select All
                       </button>
                       <button
                         onClick={deselectAll}
-                        className="min-h-11 px-3 py-2 text-xs text-mc-text-secondary hover:bg-mc-bg-tertiary rounded"
+                        className="min-h-11 px-3 py-2 text-xs text-mc-text-secondary hover:bg-white/5 rounded-lg border border-transparent transition-colors"
                       >
                         Deselect All
                       </button>
@@ -219,32 +226,32 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
                   return (
                     <div
                       key={agent.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors min-h-11 ${
-                        isImported
-                          ? 'border-mc-border/50 bg-mc-bg/50 opacity-60'
+                      className={`flex items-start gap-3 p-3 rounded-xl border transition-all min-h-11 ${isImported
+                          ? 'border-white/5 bg-black/40 opacity-60'
                           : isSelected
-                          ? 'border-mc-accent/50 bg-mc-accent/5'
-                          : 'border-mc-border hover:border-mc-border/80 hover:bg-mc-bg-tertiary cursor-pointer'
-                      }`}
+                            ? 'border-mc-accent-cyan/50 bg-mc-accent-cyan/10'
+                            : 'border-white/10 hover:border-white/20 hover:bg-white/5 cursor-pointer'
+                        }`}
                       onClick={() => !isImported && toggleSelection(agent.id)}
                     >
                       {/* Checkbox */}
                       <div
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                          isImported
+                        className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isImported
                             ? 'border-green-500/50 bg-green-500/20'
                             : isSelected
-                            ? 'border-mc-accent bg-mc-accent'
-                            : 'border-mc-border'
-                        }`}
+                              ? 'border-mc-accent-cyan bg-mc-accent-cyan shadow-[0_0_10px_rgba(34,211,238,0.5)]'
+                              : 'border-white/20'
+                          }`}
                       >
                         {(isSelected || isImported) && (
-                          <Check className={`w-3 h-3 ${isImported ? 'text-green-400' : 'text-mc-bg'}`} />
+                          <Check className={`w-3 h-3 ${isImported ? 'text-green-400' : 'text-black'}`} strokeWidth={3} />
                         )}
                       </div>
 
                       {/* Avatar */}
-                      <span className="text-2xl">{isImported ? '🔗' : '🤖'}</span>
+                      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center filter drop-shadow">
+                        {isImported ? <LinkIcon className="w-5 h-5 text-mc-accent-cyan" /> : <Bot className="w-5 h-5 text-mc-text-secondary" />}
+                      </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
@@ -272,21 +279,21 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t border-mc-border">
+        <div className="flex items-center justify-between p-4 border-t border-white/5 bg-white/[0.02]">
           <span className="text-sm text-mc-text-secondary">
             {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select agents to import'}
           </span>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={onClose}
-              className="min-h-11 px-4 py-2 text-sm text-mc-text-secondary hover:text-mc-text"
+              className="min-h-11 px-4 py-2 text-sm text-mc-text-secondary hover:text-mc-text hover:bg-white/5 rounded-full transition-colors"
             >
               {importResult ? 'Done' : 'Cancel'}
             </button>
             <button
               onClick={handleImport}
               disabled={selectedIds.size === 0 || importing}
-              className="min-h-11 flex items-center gap-2 px-4 py-2 bg-mc-accent text-mc-bg rounded text-sm font-medium hover:bg-mc-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-11 flex items-center gap-2 px-6 py-2 bg-mc-accent-cyan text-black rounded-full text-sm font-medium transition-all hover:bg-mc-accent-cyan/90 hover:scale-105 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
             >
               {importing ? (
                 <>
@@ -302,7 +309,7 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

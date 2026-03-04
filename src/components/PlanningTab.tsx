@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { CheckCircle, Circle, Lock, AlertCircle, Loader2, X } from 'lucide-react';
+import { AgentAvatar } from '@/components/AgentAvatar';
 
 interface PlanningOption {
   id: string;
@@ -67,7 +68,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
   const isPollingRef = useRef(false);
   const lastSubmissionRef = useRef<{ answer: string; otherText?: string } | null>(null);
   const currentQuestionRef = useRef<string | undefined>(undefined);
-  
+
 
 
   // Load planning state (initial load only)
@@ -384,7 +385,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-6 h-6 animate-spin text-mc-accent" />
+        <Loader2 className="w-6 h-6 animate-spin text-mc-accent-cyan" />
         <span className="ml-2 text-mc-text-secondary">Loading planning state...</span>
       </div>
     );
@@ -405,7 +406,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
             </div>
           )}
         </div>
-        
+
         {/* Dispatch Error with Retry */}
         {state.dispatchError && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
@@ -440,27 +441,27 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
             </div>
           </div>
         )}
-        
+
         {/* Spec Summary */}
-        <div className="bg-mc-bg border border-mc-border rounded-lg p-4">
-          <h3 className="font-medium mb-2">{state.spec.title}</h3>
-          <p className="text-sm text-mc-text-secondary mb-4">{state.spec.summary}</p>
-          
+        <div className="glass-panel rounded-2xl p-6">
+          <h3 className="font-medium text-lg mb-2 text-mc-text">{state.spec.title}</h3>
+          <p className="text-sm text-mc-text-secondary mb-6 leading-relaxed">{state.spec.summary}</p>
+
           {state.spec.deliverables?.length > 0 && (
-            <div className="mb-3">
-              <h4 className="text-sm font-medium mb-1">Deliverables:</h4>
-              <ul className="list-disc list-inside text-sm text-mc-text-secondary">
+            <div className="mb-4">
+              <h4 className="text-sm font-medium mb-2 text-mc-accent-cyan">Deliverables:</h4>
+              <ul className="list-disc list-inside text-sm text-mc-text-secondary space-y-1">
                 {state.spec.deliverables.map((d, i) => (
                   <li key={i}>{d}</li>
                 ))}
               </ul>
             </div>
           )}
-          
+
           {state.spec.success_criteria?.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium mb-1">Success Criteria:</h4>
-              <ul className="list-disc list-inside text-sm text-mc-text-secondary">
+              <h4 className="text-sm font-medium mb-2 text-mc-accent-purple">Success Criteria:</h4>
+              <ul className="list-disc list-inside text-sm text-mc-text-secondary space-y-1">
                 {state.spec.success_criteria.map((c, i) => (
                   <li key={i}>{c}</li>
                 ))}
@@ -468,18 +469,20 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
             </div>
           )}
         </div>
-        
+
         {/* Generated Agents */}
         {state.agents && state.agents.length > 0 && (
           <div>
-            <h3 className="font-medium mb-2">Agents Created:</h3>
-            <div className="space-y-2">
+            <h3 className="font-medium mb-3 text-lg">Agents Created:</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {state.agents.map((agent, i) => (
-                <div key={i} className="bg-mc-bg border border-mc-border rounded-lg p-3 flex items-center gap-3">
-                  <span className="text-2xl">{agent.avatar_emoji}</span>
+                <div key={i} className="glass-panel rounded-xl p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center filter drop-shadow">
+                    <AgentAvatar avatar={agent.avatar_emoji} className="w-6 h-6 text-mc-accent-cyan" />
+                  </div>
                   <div>
-                    <p className="font-medium">{agent.name}</p>
-                    <p className="text-sm text-mc-text-secondary">{agent.role}</p>
+                    <p className="font-medium text-mc-text">{agent.name}</p>
+                    <p className="text-[11px] text-mc-text-secondary uppercase tracking-wider mt-0.5">{agent.role}</p>
                   </div>
                 </div>
               ))}
@@ -497,22 +500,22 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
         <div className="text-center">
           <h3 className="text-lg font-medium mb-2">Start Planning</h3>
           <p className="text-mc-text-secondary text-sm max-w-md">
-            I&apos;ll ask you a few questions to understand exactly what you need. 
+            I&apos;ll ask you a few questions to understand exactly what you need.
             All questions are multiple choice — just click to answer.
           </p>
         </div>
-        
+
         {error && (
           <div className="flex items-center gap-2 text-red-400 text-sm">
             <AlertCircle className="w-4 h-4" />
             {error}
           </div>
         )}
-        
+
         <button
           onClick={startPlanning}
           disabled={starting}
-          className="px-6 py-3 bg-mc-accent text-mc-bg rounded-lg font-medium hover:bg-mc-accent/90 disabled:opacity-50 flex items-center gap-2"
+          className="px-8 py-4 bg-mc-accent-cyan text-black rounded-full font-medium transition-all hover:bg-mc-accent-cyan/90 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
         >
           {starting ? (
             <>
@@ -531,15 +534,15 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Progress indicator with cancel button */}
-      <div className="p-4 border-b border-mc-border flex items-center justify-between">
+      <div className="p-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm text-mc-text-secondary">
-          <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+          <div className="w-2 h-2 bg-mc-accent-purple rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
           <span>Planning in progress...</span>
         </div>
         <button
           onClick={cancelPlanning}
           disabled={canceling}
-          className="flex items-center gap-2 px-3 py-2 text-sm text-mc-accent-red hover:bg-mc-accent-red/10 rounded disabled:opacity-50"
+          className="flex items-center gap-2 px-3 py-2 text-xs text-mc-accent-red hover:bg-mc-accent-red/10 rounded-lg transition-colors disabled:opacity-50"
         >
           {canceling ? (
             <>
@@ -574,24 +577,22 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
                     <button
                       onClick={() => setSelectedOption(option.label)}
                       disabled={submitting}
-                      className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all text-left ${
-                        isThisOptionSubmitting
-                          ? 'border-mc-accent bg-mc-accent/20'
-                          : isSelected
-                          ? 'border-mc-accent bg-mc-accent/10'
-                          : 'border-mc-border hover:border-mc-accent/50'
-                      } disabled:opacity-50`}
+                      className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left group ${isThisOptionSubmitting
+                        ? 'border-mc-accent-cyan bg-mc-accent-cyan/10'
+                        : isSelected
+                          ? 'border-mc-accent-cyan bg-mc-accent-cyan/5 shadow-[0_0_15px_rgba(34,211,238,0.1)]'
+                          : 'border-white/10 hover:border-white/30 hover:bg-white/5'
+                        } disabled:opacity-50`}
                     >
-                      <span className={`w-8 h-8 rounded flex items-center justify-center text-sm font-bold ${
-                        isSelected ? 'bg-mc-accent text-mc-bg' : 'bg-mc-bg-tertiary'
-                      }`}>
+                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors ${isSelected ? 'bg-mc-accent-cyan text-black' : 'bg-white/5 border border-white/10 text-mc-text-secondary group-hover:text-mc-text'
+                        }`}>
                         {option.id.toUpperCase()}
                       </span>
-                      <span className="flex-1">{option.label}</span>
+                      <span className={`flex-1 ${isSelected ? 'text-mc-text font-medium' : 'text-mc-text-secondary group-hover:text-mc-text'}`}>{option.label}</span>
                       {isThisOptionSubmitting ? (
-                        <Loader2 className="w-5 h-5 text-mc-accent animate-spin" />
+                        <Loader2 className="w-5 h-5 text-mc-accent-cyan animate-spin" />
                       ) : isSelected && !submitting ? (
-                        <CheckCircle className="w-5 h-5 text-mc-accent" />
+                        <CheckCircle className="w-5 h-5 text-mc-accent-cyan inline-block animate-scale-in" />
                       ) : null}
                     </button>
 
@@ -603,7 +604,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
                           value={otherText}
                           onChange={(e) => setOtherText(e.target.value)}
                           placeholder="Please specify..."
-                          className="w-full bg-mc-bg border border-mc-border rounded px-3 py-2 text-sm focus:outline-none focus:border-mc-accent"
+                          className="w-full glass-input px-4 py-3 text-sm focus:outline-none"
                           disabled={submitting}
                         />
                       </div>
@@ -638,7 +639,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
               <button
                 onClick={submitAnswer}
                 disabled={!selectedOption || submitting || (selectedOption === 'Other' && !otherText.trim())}
-                className="w-full px-6 py-3 bg-mc-accent text-mc-bg rounded-lg font-medium hover:bg-mc-accent/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full px-6 py-4 bg-mc-accent-cyan text-black rounded-xl font-medium transition-all hover:bg-mc-accent-cyan/90 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <>
@@ -653,7 +654,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
               {/* Waiting indicator after submit */}
               {isSubmittingAnswer && !submitting && (
                 <div className="mt-4 flex items-center justify-center gap-2 text-sm text-mc-text-secondary">
-                  <Loader2 className="w-4 h-4 animate-spin text-mc-accent" />
+                  <Loader2 className="w-4 h-4 animate-spin text-mc-accent-cyan" />
                   <span>Waiting for response...</span>
                 </div>
               )}
@@ -662,7 +663,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin text-mc-accent mx-auto mb-2" />
+              <Loader2 className="w-8 h-8 animate-spin text-mc-accent-cyan mx-auto mb-4" />
               <p className="text-mc-text-secondary">
                 {isWaitingForResponse ? 'Waiting for response...' : 'Waiting for next question...'}
               </p>
@@ -679,7 +680,7 @@ export function PlanningTab({ taskId, onSpecLocked }: PlanningTabProps) {
           </summary>
           <div className="p-3 space-y-2 max-h-48 overflow-y-auto bg-mc-bg">
             {state.messages.map((msg, i) => (
-              <div key={i} className={`text-sm ${msg.role === 'user' ? 'text-mc-accent' : 'text-mc-text-secondary'}`}>
+              <div key={i} className={`text-sm ${msg.role === 'user' ? 'text-mc-accent-cyan' : 'text-mc-text-secondary'}`}>
                 <span className="font-medium">{msg.role === 'user' ? 'You' : 'Orchestrator'}:</span>{' '}
                 <span className="opacity-75">{msg.content.substring(0, 100)}...</span>
               </div>

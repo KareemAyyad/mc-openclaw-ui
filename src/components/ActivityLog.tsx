@@ -7,6 +7,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { Rocket, Edit3, CheckCircle2, FilePlus2, RefreshCw, FileText, Bot } from 'lucide-react';
 import type { TaskActivity } from '@/lib/types';
 
 interface ActivityLogProps {
@@ -75,17 +76,17 @@ export function ActivityLog({ taskId }: ActivityLogProps) {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'spawned':
-        return '🚀';
+        return <Rocket className="w-5 h-5 text-mc-accent-cyan" />;
       case 'updated':
-        return '✏️';
+        return <Edit3 className="w-5 h-5 text-mc-accent-yellow" />;
       case 'completed':
-        return '✅';
+        return <CheckCircle2 className="w-5 h-5 text-mc-accent-green" />;
       case 'file_created':
-        return '📄';
+        return <FilePlus2 className="w-5 h-5 text-mc-accent-purple" />;
       case 'status_changed':
-        return '🔄';
+        return <RefreshCw className="w-5 h-5 text-blue-400" />;
       default:
-        return '📝';
+        return <FileText className="w-5 h-5 text-mc-text-secondary" />;
     }
   };
 
@@ -99,53 +100,59 @@ export function ActivityLog({ taskId }: ActivityLogProps) {
 
   if (activities.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-mc-text-secondary">
-        <div className="text-4xl mb-2">📝</div>
+      <div className="flex flex-col items-center justify-center py-12 text-mc-text-secondary glass-panel rounded-2xl border-dashed">
+        <FileText className="w-12 h-12 mb-3 opacity-50" strokeWidth={1.5} />
         <p>No activity yet</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {activities.map((activity) => (
         <div
           key={activity.id}
-          className="flex gap-3 p-3 bg-mc-bg rounded-lg border border-mc-border"
+          className="flex gap-4 p-4 glass-panel rounded-2xl hover:bg-white/[0.04] transition-colors group"
         >
           {/* Icon */}
-          <div className="text-2xl flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 filter drop-shadow group-hover:scale-110 transition-transform">
             {getActivityIcon(activity.activity_type)}
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pt-0.5">
             {/* Agent info */}
             {activity.agent && (
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm">{activity.agent.avatar_emoji}</span>
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-5 h-5 rounded bg-white/10 flex items-center justify-center filter drop-shadow">
+                  <Bot className="w-3.5 h-3.5 text-mc-text-secondary" />
+                </div>
                 <span className="text-sm font-medium text-mc-text">
                   {activity.agent.name}
+                </span>
+                <span className="text-xs text-mc-text-secondary px-1.5 py-0.5 rounded bg-white/5 border border-white/10 scale-90 origin-left">
+                  Agent
                 </span>
               </div>
             )}
 
             {/* Message */}
-            <p className="text-sm text-mc-text break-words">
+            <p className="text-sm text-mc-text break-words leading-relaxed">
               {activity.message}
             </p>
 
             {/* Metadata */}
             {activity.metadata && (
-              <div className="mt-2 p-2 bg-mc-bg-tertiary rounded text-xs text-mc-text-secondary font-mono">
-                {typeof activity.metadata === 'string' 
-                  ? activity.metadata 
+              <div className="mt-3 p-3 bg-black/40 border border-white/5 rounded-xl text-xs text-mc-text-secondary font-mono overflow-x-auto hide-scrollbar">
+                {typeof activity.metadata === 'string'
+                  ? activity.metadata
                   : JSON.stringify(JSON.parse(activity.metadata), null, 2)}
               </div>
             )}
 
             {/* Timestamp */}
-            <div className="text-xs text-mc-text-secondary mt-2">
+            <div className="text-xs text-mc-text-secondary/60 mt-3 flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-mc-text-secondary/40" />
               {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
             </div>
           </div>

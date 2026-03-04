@@ -110,7 +110,7 @@ async function seed() {
     'Orchestrator',
     'Team Lead & Orchestrator',
     'The master orchestrator who coordinates all agents and manages the mission queue',
-    '🦞',
+    'Bug',
     'standby',
     1,
     ORCHESTRATOR_SOUL_MD,
@@ -195,7 +195,7 @@ async function seed() {
     uuidv4(),
     teamConvoId,
     orchestratorId,
-    "Welcome to Mission Control, team! 🦞 I'm your orchestrator. Let's get to work.",
+    "Welcome to Mission Control, team! 🚀 I'm your orchestrator. Let's get to work.",
     'text',
     now
   );

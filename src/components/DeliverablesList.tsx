@@ -121,8 +121,8 @@ export function DeliverablesList({ taskId }: DeliverablesListProps) {
 
   if (deliverables.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-mc-text-secondary">
-        <div className="text-4xl mb-2">📦</div>
+      <div className="flex flex-col items-center justify-center py-12 text-mc-text-secondary glass-panel rounded-2xl border-dashed">
+        <Package className="w-12 h-12 mb-3 opacity-50" strokeWidth={1.5} />
         <p>No deliverables yet</p>
       </div>
     );
@@ -133,36 +133,36 @@ export function DeliverablesList({ taskId }: DeliverablesListProps) {
       {deliverables.map((deliverable) => (
         <div
           key={deliverable.id}
-          className="flex gap-3 p-3 bg-mc-bg rounded-lg border border-mc-border hover:border-mc-accent transition-colors"
+          className="flex gap-4 p-4 glass-panel rounded-2xl hover:bg-white/[0.04] transition-colors group"
         >
           {/* Icon */}
-          <div className="flex-shrink-0 text-mc-accent">
+          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 filter drop-shadow text-mc-accent-cyan group-hover:scale-110 transition-transform">
             {getDeliverableIcon(deliverable.deliverable_type)}
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pt-0.5">
             {/* Title - clickable for URLs */}
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start justify-between gap-3">
               {deliverable.deliverable_type === 'url' && deliverable.path ? (
                 <a
                   href={deliverable.path}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-mc-accent hover:text-mc-accent/80 hover:underline flex items-center gap-1.5"
+                  className="font-medium text-mc-accent-cyan hover:text-mc-accent-cyan/80 flex items-center gap-1.5 transition-colors"
                 >
                   {deliverable.title}
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               ) : (
-                <h4 className="font-medium text-mc-text">{deliverable.title}</h4>
+                <h4 className="font-medium text-mc-text break-words">{deliverable.title}</h4>
               )}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 shrink-0">
                 {/* Preview button for HTML files */}
                 {deliverable.deliverable_type === 'file' && deliverable.path?.endsWith('.html') && (
                   <button
                     onClick={() => handlePreview(deliverable)}
-                    className="flex-shrink-0 p-1.5 hover:bg-mc-bg-tertiary rounded text-mc-accent-cyan"
+                    className="flex-shrink-0 p-2 hover:bg-white/10 rounded-lg text-mc-accent-cyan transition-colors"
                     title="Preview in browser"
                   >
                     <Eye className="w-4 h-4" />
@@ -172,7 +172,7 @@ export function DeliverablesList({ taskId }: DeliverablesListProps) {
                 {deliverable.path && (
                   <button
                     onClick={() => handleOpen(deliverable)}
-                    className="flex-shrink-0 p-1.5 hover:bg-mc-bg-tertiary rounded text-mc-accent"
+                    className="flex-shrink-0 p-2 hover:bg-white/10 rounded-lg text-mc-text-secondary hover:text-mc-text transition-colors"
                     title={deliverable.deliverable_type === 'url' ? 'Open URL' : 'Reveal in Finder'}
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -195,12 +195,12 @@ export function DeliverablesList({ taskId }: DeliverablesListProps) {
                   href={deliverable.path}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 p-2 bg-mc-bg-tertiary rounded text-xs text-mc-accent hover:text-mc-accent/80 font-mono break-all block hover:bg-mc-bg-tertiary/80"
+                  className="mt-3 p-3 bg-black/40 border border-white/5 rounded-xl text-xs text-mc-accent-cyan hover:text-mc-accent-cyan/80 font-mono break-all block transition-colors"
                 >
                   {deliverable.path}
                 </a>
               ) : (
-                <div className="mt-2 p-2 bg-mc-bg-tertiary rounded text-xs text-mc-text-secondary font-mono break-all">
+                <div className="mt-3 p-3 bg-black/40 border border-white/5 rounded-xl text-xs text-mc-text-secondary font-mono break-all">
                   {deliverable.path}
                 </div>
               )

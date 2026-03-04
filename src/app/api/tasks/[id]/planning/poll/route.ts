@@ -63,7 +63,7 @@ async function handlePlanningCompletion(taskId: string, parsed: any, messages: a
           agent.name,
           agent.role,
           agent.instructions || '',
-          agent.avatar_emoji || '🤖',
+          agent.avatar_emoji || 'Bot',
           agent.soul_md || ''
         );
       }

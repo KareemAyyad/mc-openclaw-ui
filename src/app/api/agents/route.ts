@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const workspaceId = request.nextUrl.searchParams.get('workspace_id');
-    
+
     let agents: Agent[];
     if (workspaceId) {
       agents = queryAll<Agent>(`
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         body.name,
         body.role,
         body.description || null,
-        body.avatar_emoji || '🤖',
+        body.avatar_emoji || 'Bot',
         body.is_master ? 1 : 0,
         (body as { workspace_id?: string }).workspace_id || 'default',
         body.soul_md || null,

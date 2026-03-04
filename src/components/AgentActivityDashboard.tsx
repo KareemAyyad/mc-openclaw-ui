@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, AlertTriangle, Activity, Clock, Filter, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { AgentAvatar } from '@/components/AgentAvatar';
 import type { Agent, Event, Task, Workspace } from '@/lib/types';
 
 type ActivityFilter = 'all' | 'working' | 'blocked' | 'idle';
@@ -189,68 +190,70 @@ export function AgentActivityDashboard({ workspace }: AgentActivityDashboardProp
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-mc-bg flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">🦞</div>
-          <p className="text-mc-text-secondary">Loading activity dashboard...</p>
-        </div>
+      <div className="min-h-[100dvh] bg-mc-bg flex items-center justify-center p-4">
+        <div className="text-mc-text-secondary animate-pulse text-sm">Loading activity dashboard...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-mc-bg pb-[calc(1rem+env(safe-area-inset-bottom))]">
-      <header className="border-b border-mc-border bg-mc-bg-secondary px-4 sm:px-6 py-3">
+    <div className="min-h-[100dvh] bg-mc-bg pb-[env(safe-area-inset-bottom)]">
+      <header className="sticky top-0 z-30 border-b border-white/5 bg-black/60 backdrop-blur-md px-4 sm:px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link href={workspace ? `/workspace/${workspace.slug}` : '/'} className="min-h-11 min-w-11 px-3 rounded-lg border border-mc-border bg-mc-bg flex items-center justify-center hover:bg-mc-bg-tertiary">
-              <ArrowLeft className="w-4 h-4" />
+          <div className="flex items-center gap-3 md:gap-4 min-w-0">
+            <Link href={workspace ? `/workspace/${workspace.slug}` : '/'} className="p-2 hover:bg-white/10 rounded-xl text-mc-text-secondary hover:text-mc-text transition-colors shadow-none border-0 bg-transparent flex items-center justify-center shrink-0">
+              <ArrowLeft className="w-5 h-5" />
             </Link>
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-xl font-semibold truncate">Agent Activity Dashboard</h1>
-              <p className="text-xs sm:text-sm text-mc-text-secondary truncate">
-                {workspace ? `${workspace.icon} ${workspace.name}` : 'All workspaces'} · {sseConnected ? 'Live (SSE)' : 'Polling fallback'}
+              <h1 className="text-xl sm:text-2xl font-bold text-mc-text truncate">Agent Activity Dashboard</h1>
+              <p className="text-xs sm:text-sm text-mc-text-secondary truncate mt-0.5">
+                {workspace ? `${workspace.icon} ${workspace.name}` : 'All workspaces'} <span className="mx-1.5 opacity-50">•</span> {sseConnected ? 'Live (SSE)' : 'Polling fallback'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className={`px-2.5 min-h-11 rounded-lg border text-xs flex items-center gap-2 ${sseConnected ? 'text-mc-accent-green border-mc-accent-green/40 bg-mc-accent-green/10' : 'text-mc-accent-yellow border-mc-accent-yellow/40 bg-mc-accent-yellow/10'}`}>
-              <RefreshCw className="w-3.5 h-3.5" />
-              {sseConnected ? 'LIVE' : 'FALLBACK'}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className={`px-3 py-1.5 min-h-11 rounded-lg border text-xs sm:text-sm font-medium flex items-center gap-2 transition-all ${sseConnected ? 'text-mc-accent-green border-mc-accent-green/40 bg-mc-accent-green/10 shadow-[0_0_15px_rgba(34,197,94,0.2)]' : 'text-mc-accent-yellow border-mc-accent-yellow/40 bg-mc-accent-yellow/10'}`}>
+              <RefreshCw className={`w-4 h-4 ${sseConnected ? 'animate-spin-slow' : ''}`} />
+              <span className="hidden sm:inline">{sseConnected ? 'LIVE' : 'FALLBACK'}</span>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        <section className={`grid ${isPortrait ? 'grid-cols-2' : 'grid-cols-4'} gap-3`}>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
+        <section className={`grid ${isPortrait ? 'grid-cols-2' : 'grid-cols-4'} gap-4`}>
           <MetricCard label="Agents" value={String(agents.length)} />
           <MetricCard label="Working" value={String(agents.filter((a) => a.status === 'working').length)} />
           <MetricCard label="Blocked" value={String(blockedAgentIds.size)} />
           <MetricCard label="Active Tasks" value={String(activeTasks.length)} />
         </section>
 
-        <section className="bg-mc-bg-secondary border border-mc-border rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Activity className="w-4 h-4 text-mc-accent" />
-            <h2 className="font-semibold">Now Working</h2>
+        <section className="glass-panel rounded-2xl p-5 sm:p-6">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-mc-accent-cyan/10 border border-mc-accent-cyan/20 flex items-center justify-center">
+              <Activity className="w-4 h-4 text-mc-accent-cyan" />
+            </div>
+            <h2 className="text-lg font-semibold text-mc-text">Now Working</h2>
           </div>
           {nowWorking.length === 0 ? (
-            <div className="text-sm text-mc-text-secondary">No agents currently marked as working.</div>
+            <div className="text-sm text-mc-text-secondary/70 italic">No agents currently marked as working.</div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {nowWorking.map(({ agent, currentTask }) => (
-                <div key={agent.id} className="border border-mc-border rounded-lg p-3 bg-mc-bg min-h-11">
-                  <div className="flex items-center justify-between gap-2">
+                <div key={agent.id} className="border border-white/5 rounded-xl p-4 bg-white/[0.02] hover:bg-white/[0.04] transition-colors min-h-11 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="min-w-0 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center filter drop-shadow shrink-0">
+                      <AgentAvatar avatar={agent.avatar_emoji} className="w-5 h-5 text-mc-accent-cyan" />
+                    </div>
                     <div className="min-w-0">
-                      <div className="font-medium text-sm truncate">{agent.avatar_emoji} {agent.name}</div>
-                      <div className="text-xs text-mc-text-secondary truncate">{currentTask?.title || 'No active task linked'}</div>
+                      <div className="font-medium text-sm text-mc-text truncate">{agent.name}</div>
+                      <div className="text-xs text-mc-text-secondary truncate mt-0.5">{currentTask?.title || 'No active task linked'}</div>
                     </div>
-                    <div className="text-xs text-mc-text-secondary whitespace-nowrap flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {formatDistanceToNow(new Date(currentTask?.updated_at || agent.updated_at), { addSuffix: true })}
-                    </div>
+                  </div>
+                  <div className="text-xs text-mc-text-secondary/60 whitespace-nowrap flex items-center gap-1.5 bg-black/40 px-2.5 py-1.5 rounded-lg border border-white/5 w-fit">
+                    <Clock className="w-3.5 h-3.5" />
+                    {formatDistanceToNow(new Date(currentTask?.updated_at || agent.updated_at), { addSuffix: true })}
                   </div>
                 </div>
               ))}
@@ -259,57 +262,69 @@ export function AgentActivityDashboard({ workspace }: AgentActivityDashboardProp
         </section>
 
         <section>
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <Filter className="w-4 h-4 text-mc-text-secondary" />
+          <div className="flex flex-wrap items-center gap-2 mb-6 p-1.5 bg-black/40 border border-white/5 rounded-xl w-fit">
+            <div className="px-3 flex items-center justify-center border-r border-white/10 mr-1">
+              <Filter className="w-4 h-4 text-mc-text-secondary" />
+            </div>
             {(['all', 'working', 'blocked', 'idle'] as ActivityFilter[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
-                className={`min-h-11 px-4 rounded-full border text-sm capitalize ${filter === tab ? 'bg-mc-accent text-mc-bg border-mc-accent' : 'bg-mc-bg-secondary text-mc-text-secondary border-mc-border'}`}
+                className={`min-h-9 px-5 rounded-lg text-sm font-medium capitalize transition-all duration-300 ${filter === tab ? 'bg-mc-accent-cyan text-black shadow-[0_0_15px_rgba(34,211,238,0.3)]' : 'text-mc-text-secondary hover:text-mc-text hover:bg-white/5'}`}
               >
                 {tab}
               </button>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {filteredAgents.map((agent) => {
               const agentTimeline = (eventsByAgent.get(agent.id) || []).slice(0, 5);
               const isBlocked = blockedAgentIds.has(agent.id);
 
               return (
-                <article key={agent.id} className="bg-mc-bg-secondary border border-mc-border rounded-xl p-4">
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="min-w-0">
-                      <div className="font-semibold truncate">{agent.avatar_emoji} {agent.name}</div>
-                      <div className="text-xs text-mc-text-secondary truncate">{agent.role}</div>
+                <article key={agent.id} className="glass-panel rounded-2xl p-5 sm:p-6 transition-all hover:bg-white/[0.04]">
+                  <div className="flex items-start justify-between gap-4 mb-5 pb-5 border-b border-white/5">
+                    <div className="flex gap-3 min-w-0">
+                      <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center filter drop-shadow shrink-0">
+                        <AgentAvatar avatar={agent.avatar_emoji} className="w-6 h-6 text-mc-accent-cyan" />
+                      </div>
+                      <div className="min-w-0 flex flex-col justify-center">
+                        <div className="font-semibold text-mc-text text-base truncate">{agent.name}</div>
+                        <div className="text-xs text-mc-text-secondary uppercase tracking-wider truncate mt-1">{agent.role}</div>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <span className={`text-xs px-2 py-1 rounded uppercase ${agent.status === 'working' ? 'status-working' : agent.status === 'offline' ? 'status-offline' : 'status-standby'}`}>
+                    <div className="text-right shrink-0 flex flex-col items-end justify-center">
+                      <span className={`text-[10px] sm:text-xs px-2.5 py-1 rounded inline-block uppercase tracking-wider font-medium ${agent.status === 'working' ? 'status-working' : agent.status === 'offline' ? 'status-offline' : 'status-standby'}`}>
                         {agent.status}
                       </span>
-                      <div className="text-[11px] text-mc-text-secondary mt-1">Updated {formatDistanceToNow(new Date(agent.updated_at), { addSuffix: true })}</div>
+                      <div className="text-[10px] text-mc-text-secondary/60 mt-2">Updated {formatDistanceToNow(new Date(agent.updated_at), { addSuffix: true })}</div>
                     </div>
                   </div>
 
                   {isBlocked && (
-                    <div className="mb-3 p-2.5 rounded-lg border border-mc-accent-red/30 bg-mc-accent-red/10 text-mc-accent-red text-xs flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4" />
+                    <div className="mb-5 p-3 rounded-xl border border-mc-accent-red/30 bg-mc-accent-red/10 text-mc-accent-red text-sm flex items-center gap-2.5 shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
                       Blocked indicator: waiting in testing/review or offline with assigned work
                     </div>
                   )}
 
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium uppercase text-mc-text-secondary">Timeline</div>
+                  <div className="space-y-3">
+                    <div className="text-[10px] font-medium uppercase tracking-widest text-mc-text-secondary/50 flex items-center gap-2">
+                      <span>Timeline</span>
+                      <div className="h-px flex-1 bg-white/5" />
+                    </div>
                     {agentTimeline.length === 0 ? (
-                      <div className="text-xs text-mc-text-secondary">No recent activity for this agent.</div>
+                      <div className="text-xs text-mc-text-secondary/60 italic py-2">No recent activity for this agent.</div>
                     ) : (
-                      agentTimeline.map((event) => (
-                        <div key={event.id} className="rounded-lg border border-mc-border bg-mc-bg px-3 py-2.5 min-h-11">
-                          <div className="text-sm leading-snug">{event.message}</div>
-                          <div className="text-[11px] text-mc-text-secondary mt-1">{formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}</div>
-                        </div>
-                      ))
+                      <div className="space-y-2">
+                        {agentTimeline.map((event) => (
+                          <div key={event.id} className="rounded-xl border border-white/5 bg-black/20 hover:bg-black/40 transition-colors px-3 py-2.5 min-h-11 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="text-sm text-mc-text/90 leading-snug">{event.message}</div>
+                            <div className="text-[10px] text-mc-text-secondary/60 shrink-0 bg-white/5 px-2 py-1 rounded-md w-fit">{formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}</div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </article>
@@ -324,9 +339,9 @@ export function AgentActivityDashboard({ workspace }: AgentActivityDashboardProp
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-mc-bg-secondary border border-mc-border rounded-xl p-3 sm:p-4 min-h-20">
-      <div className="text-[11px] uppercase text-mc-text-secondary">{label}</div>
-      <div className="text-xl sm:text-2xl font-semibold mt-1">{value}</div>
+    <div className="glass-panel rounded-2xl p-4 sm:p-5 min-h-24 flex flex-col justify-between hover:bg-white/[0.04] transition-colors group">
+      <div className="text-[10px] sm:text-xs font-medium uppercase tracking-widest text-mc-text-secondary group-hover:text-mc-accent-cyan transition-colors">{label}</div>
+      <div className="text-2xl sm:text-4xl font-light text-mc-text mt-2 tracking-tight">{value}</div>
     </div>
   );
 }
