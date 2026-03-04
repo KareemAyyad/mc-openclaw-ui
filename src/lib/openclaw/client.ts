@@ -51,6 +51,8 @@ export class OpenClawClient extends EventEmitter {
   private authenticated = false; // Track auth state separately from connection state
   private connecting: Promise<void> | null = null; // Lock to prevent multiple simultaneous connection attempts
   private autoReconnect = true;
+  private reconnectAttempts = 0;
+  private readonly MAX_RECONNECT_DELAY = 60000;
   private token: string;
   private deviceIdentity: { deviceId: string; publicKeyPem: string; privateKeyPem: string } | null = null;
   private messageHandlers = new Set<(event: MessageEvent) => void>(); // Track all message handlers for cleanup
@@ -125,7 +127,7 @@ export class OpenClawClient extends EventEmitter {
     super();
     this.token = token;
     // Prevent Node.js from throwing on unhandled 'error' events
-    this.on('error', () => {});
+    this.on('error', () => { });
     // Load device identity for pairing
     try {
       this.deviceIdentity = loadOrCreateDeviceIdentity();
@@ -133,7 +135,7 @@ export class OpenClawClient extends EventEmitter {
     } catch (err) {
       console.warn('[OpenClaw] Failed to load device identity, will connect without:', err);
     }
-// Start periodic cleanup to prevent unbounded cache growth
+    // Start periodic cleanup to prevent unbounded cache growth
     this.startPeriodicCleanup();
   }
 
@@ -341,6 +343,7 @@ export class OpenClawClient extends EventEmitter {
                   this.connected = true;
                   this.authenticated = true;
                   this.connecting = null;
+                  this.reconnectAttempts = 0; // Reset backoff on success
                   this.emit('connected');
                   console.log('[OpenClaw] Authenticated successfully');
                   resolve();
@@ -418,6 +421,12 @@ export class OpenClawClient extends EventEmitter {
   private scheduleReconnect(): void {
     if (this.reconnectTimer || !this.autoReconnect) return;
 
+    this.reconnectAttempts++;
+    const baseDelay = Math.min(5000 * Math.pow(2, this.reconnectAttempts - 1), this.MAX_RECONNECT_DELAY);
+    const delay = baseDelay + Math.random() * 1000; // Add jitter
+
+    console.log(`[OpenClaw] Scheduling reconnect in ${Math.round(delay / 1000)}s (attempt ${this.reconnectAttempts})`);
+
     this.reconnectTimer = setTimeout(async () => {
       this.reconnectTimer = null;
       if (!this.autoReconnect) return;
@@ -429,7 +438,7 @@ export class OpenClawClient extends EventEmitter {
         // Don't spam logs on reconnect failure, just schedule another attempt
         this.scheduleReconnect();
       }
-    }, 10000); // 10 seconds between reconnect attempts
+    }, delay);
   }
 
   async call<T = unknown>(method: string, params?: Record<string, unknown>): Promise<T> {
