@@ -3,7 +3,7 @@
 import { Activity, Bot, Shield, Zap, Key, Clock, Settings2, WifiOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useGatewayWebSocket } from '@/hooks/useGatewayWebSocket';
-import { TEAMS, AGENTS, AgentTeam } from '@/lib/agentRegistry';
+import { TEAMS, AGENTS, TEAM_IDS, AgentTeam } from '@/lib/agentRegistry';
 
 interface AgentConfig {
     id: string;
@@ -128,7 +128,7 @@ export default function FleetPage() {
 
             {/* Teams Grid */}
             <div className="space-y-12 relative z-10">
-                {(Object.keys(TEAMS) as AgentTeam[]).map((teamId, teamIdx) => {
+                {TEAM_IDS.map((teamId, teamIdx) => {
                     const teamMeta = TEAMS[teamId];
                     const teamAgents = agents.filter(a => a.team === teamId);
                     if (teamAgents.length === 0) return null;

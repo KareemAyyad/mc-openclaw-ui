@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Database, Search, FileJson, FileText, AlertCircle, RefreshCw, ChevronRight } from 'lucide-react';
-import { TEAMS, AGENTS, memoryFiles, AgentTeam } from '@/lib/agentRegistry';
+import { TEAMS, AGENTS, TEAM_IDS, memoryFiles, AgentTeam } from '@/lib/agentRegistry';
 
 export default function MemoryPage() {
   const [selectedAgent, setSelectedAgent] = useState('leadgen');
@@ -18,31 +18,31 @@ export default function MemoryPage() {
     }
   }, [selectedAgent, selectedFile]);
 
-  useEffect(() => {
-    async function loadFile() {
-      if (!selectedAgent || !selectedFile) return;
+  const loadFile = useCallback(async () => {
+    if (!selectedAgent || !selectedFile) return;
 
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
-      try {
-        const res = await fetch(`/api/memory?agent=${selectedAgent}&file=${selectedFile}`);
-        const data = await res.json();
+    try {
+      const res = await fetch(`/api/memory?agent=${selectedAgent}&file=${selectedFile}`);
+      const data = await res.json();
 
-        if (!res.ok) {
-          throw new Error(data.error || 'Failed to load file');
-        }
-
-        setFileData(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to load file');
       }
-    }
 
-    loadFile();
+      setFileData(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [selectedAgent, selectedFile]);
+
+  useEffect(() => {
+    loadFile();
+  }, [loadFile]);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -57,7 +57,7 @@ export default function MemoryPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
-          {(Object.keys(TEAMS) as AgentTeam[]).map((teamId) => {
+          {TEAM_IDS.map((teamId) => {
             const teamMeta = TEAMS[teamId];
             const teamAgents = Object.keys(AGENTS).filter(id => AGENTS[id].team === teamId);
 
@@ -138,11 +138,7 @@ export default function MemoryPage() {
           </div>
 
           <button
-            onClick={() => {
-              setLoading(true);
-              // Small artificial delay to show loading state on manual refresh
-              setTimeout(() => setLoading(false), 500);
-            }}
+            onClick={() => loadFile()}
             className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />

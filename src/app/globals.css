@@ -265,6 +265,15 @@ body {
   background-color: var(--mc-bg-secondary);
 }
 
+@keyframes scale-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.animate-scale-x {
+  animation: scale-x 1s ease-out forwards;
+}
+
 .shimmer-bg::after {
   content: '';
   position: absolute;

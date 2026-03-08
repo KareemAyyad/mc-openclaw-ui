@@ -4,11 +4,10 @@ import { Activity, AlertCircle, TrendingUp, Filter, Mail, Users, Target, ArrowDo
 import { useEffect, useState } from 'react';
 import { TEAMS, AgentTeam } from '@/lib/agentRegistry';
 
-type TabType = 'all' | 'sales' | 'marketing' | 'operations' | 'engineering';
+type TabType = 'all' | AgentTeam;
 
 export default function PipelinePage() {
     const [stats, setStats] = useState<any>(null);
-    const [recentActivity, setRecentActivity] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>('all');
@@ -25,7 +24,6 @@ export default function PipelinePage() {
 
                 if (data.success) {
                     setStats(data);
-                    setRecentActivity(data.recentActivity || []);
                 }
             } catch (err: any) {
                 setError(err.message);
@@ -51,9 +49,9 @@ export default function PipelinePage() {
         { id: 'engineering', label: TEAMS.engineering.label, icon: <span className="mr-2">{TEAMS.engineering.icon}</span> },
     ];
 
-    const renderCard = (title: string, value: string | number, subline: string, colorClass: string, icon: React.ReactNode, delayIdx: number) => (
+    const renderCard = (title: string, value: string | number, subline: string, colorClass: string, bgAccent: string, icon: React.ReactNode, delayIdx: number) => (
         <div key={title} className={`bg-white rounded-2xl p-6 border border-slate-200/60 shadow-sm relative overflow-hidden group animate-slide-in-right`} style={{ animationDelay: `${delayIdx * 100}ms` }}>
-            <div className={`absolute top-0 right-0 w-32 h-32 ${colorClass.split(' ')[0].replace('text-', 'bg-').replace('-600', '-50')} rounded-bl-full -z-10 transition-transform group-hover:scale-110`}></div>
+            <div className={`absolute top-0 right-0 w-32 h-32 ${bgAccent} rounded-bl-full -z-10 transition-transform group-hover:scale-110`}></div>
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-slate-500 font-medium text-sm flex items-center">
                     {icon} {title}
@@ -103,21 +101,21 @@ export default function PipelinePage() {
             {activeTab === 'all' && (
                 <div className="space-y-8 animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {renderCard('ICP Found', stats.sales?.icpFound || 0, 'Sales Output', 'text-emerald-600', <Filter className="w-4 h-4 mr-1.5" />, 0)}
-                        {renderCard('Posts Published', stats.marketing?.postsPublished || 0, 'Marketing Output', 'text-indigo-600', <FileText className="w-4 h-4 mr-1.5" />, 1)}
-                        {renderCard('Cost Alerts', stats.operations?.costAlerts || 0, 'Operations Handled', 'text-amber-600', <DollarSign className="w-4 h-4 mr-1.5" />, 2)}
-                        {renderCard('Cron Jobs Run', stats.engineering?.cronJobsRun || 0, 'Engineering Velocity', 'text-sky-600', <Activity className="w-4 h-4 mr-1.5" />, 3)}
+                        {renderCard('ICP Found', stats.sales?.icpFound || 0, 'Sales Output', 'text-emerald-600', 'bg-emerald-50', <Filter className="w-4 h-4 mr-1.5" />, 0)}
+                        {renderCard('Posts Published', stats.marketing?.postsPublished || 0, 'Marketing Output', 'text-indigo-600', 'bg-indigo-50', <FileText className="w-4 h-4 mr-1.5" />, 1)}
+                        {renderCard('Cost Alerts', stats.operations?.costAlerts || 0, 'Operations Handled', 'text-amber-600', 'bg-amber-50', <DollarSign className="w-4 h-4 mr-1.5" />, 2)}
+                        {renderCard('Cron Jobs Run', stats.engineering?.cronJobsRun || 0, 'Engineering Velocity', 'text-sky-600', 'bg-sky-50', <Activity className="w-4 h-4 mr-1.5" />, 3)}
                     </div>
 
                     <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-8">
                         <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center">
                             <Activity className="w-5 h-5 mr-2 text-slate-400" /> Recent Fleet Activity
                         </h2>
-                        {recentActivity.length === 0 ? (
+                        {stats?.recentActivity.length === 0 ? (
                             <p className="text-slate-500 italic">No telemetry events recorded yet.</p>
                         ) : (
                             <div className="space-y-4">
-                                {recentActivity.slice(0, 10).map((event: any, i: number) => (
+                                {stats?.recentActivity.slice(0, 10).map((event: any, i: number) => (
                                     <div key={event.id} className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
                                         <div className="mt-1">
                                             <div className="w-2 h-2 rounded-full bg-mc-accent animate-pulse-slow"></div>
@@ -146,10 +144,10 @@ export default function PipelinePage() {
             {activeTab === 'sales' && (
                 <div className="space-y-8 animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {renderCard('ICP Found', stats.sales?.icpFound || 0, 'LeadGen Agent', 'text-emerald-600', <Filter className="w-4 h-4 mr-1.5" />, 0)}
-                        {renderCard('Sequenced', stats.sales?.sequencesSent || 0, 'Outbound Agent', 'text-blue-600', <Mail className="w-4 h-4 mr-1.5" />, 1)}
-                        {renderCard('Active Trials', stats.sales?.activeTrials || 0, 'Estimated', 'text-amber-600', <Users className="w-4 h-4 mr-1.5" />, 2)}
-                        {renderCard('PQLs Detected', stats.sales?.pqlDetected || 0, 'Ready for closing', 'text-rose-600', <Target className="w-4 h-4 mr-1.5" />, 3)}
+                        {renderCard('ICP Found', stats.sales?.icpFound || 0, 'LeadGen Agent', 'text-emerald-600', 'bg-emerald-50', <Filter className="w-4 h-4 mr-1.5" />, 0)}
+                        {renderCard('Sequenced', stats.sales?.sequencesSent || 0, 'Outbound Agent', 'text-blue-600', 'bg-blue-50', <Mail className="w-4 h-4 mr-1.5" />, 1)}
+                        {renderCard('Active Trials', stats.sales?.activeTrials || 0, 'Estimated', 'text-amber-600', 'bg-amber-50', <Users className="w-4 h-4 mr-1.5" />, 2)}
+                        {renderCard('PQLs Detected', stats.sales?.pqlDetected || 0, 'Ready for closing', 'text-rose-600', 'bg-rose-50', <Target className="w-4 h-4 mr-1.5" />, 3)}
                     </div>
 
                     <div className="bg-white rounded-3xl border border-emerald-100 shadow-sm p-8 bg-gradient-to-br from-white to-emerald-50/20">
@@ -183,10 +181,10 @@ export default function PipelinePage() {
             {activeTab === 'marketing' && (
                 <div className="space-y-8 animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {renderCard('Blog Posts', stats.marketing?.postsPublished || 0, 'Content Agent', 'text-indigo-600', <FileText className="w-4 h-4 mr-1.5" />, 0)}
-                        {renderCard('SERP Movements', stats.marketing?.serpMovements || 0, 'SEO Agent', 'text-teal-600', <Globe className="w-4 h-4 mr-1.5" />, 1)}
-                        {renderCard('Briefs Rcvd', stats.marketing?.contentBriefs || 0, 'Content Agent', 'text-purple-600', <Mail className="w-4 h-4 mr-1.5" />, 2)}
-                        {renderCard('Avg Rank Improv', '+3', 'Estimated', 'text-emerald-600', <TrendingUp className="w-4 h-4 mr-1.5" />, 3)}
+                        {renderCard('Blog Posts', stats.marketing?.postsPublished || 0, 'Content Agent', 'text-indigo-600', 'bg-indigo-50', <FileText className="w-4 h-4 mr-1.5" />, 0)}
+                        {renderCard('SERP Movements', stats.marketing?.serpMovements || 0, 'SEO Agent', 'text-teal-600', 'bg-teal-50', <Globe className="w-4 h-4 mr-1.5" />, 1)}
+                        {renderCard('Briefs Rcvd', stats.marketing?.contentBriefs || 0, 'Content Agent', 'text-purple-600', 'bg-purple-50', <Mail className="w-4 h-4 mr-1.5" />, 2)}
+                        {renderCard('Avg Rank Improv', '+3', 'Estimated', 'text-emerald-600', 'bg-emerald-50', <TrendingUp className="w-4 h-4 mr-1.5" />, 3)}
                     </div>
                 </div>
             )}
@@ -194,10 +192,10 @@ export default function PipelinePage() {
             {activeTab === 'operations' && (
                 <div className="space-y-8 animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {renderCard('Cost Alerts', stats.operations?.costAlerts || 0, 'FinOps Agent', 'text-orange-600', <DollarSign className="w-4 h-4 mr-1.5" />, 0)}
-                        {renderCard('Invoices', stats.operations?.invoicesProcessed || 0, 'FinOps Agent', 'text-blue-600', <CheckCircle className="w-4 h-4 mr-1.5" />, 1)}
-                        {renderCard('Threat Alerts', stats.operations?.competitorAlerts || 0, 'Intel Agent', 'text-rose-600', <Shield className="w-4 h-4 mr-1.5" />, 2)}
-                        {renderCard('Active Threats', stats.operations?.activeThreats || 0, 'Tracked in Memory', 'text-rose-600', <AlertCircle className="w-4 h-4 mr-1.5" />, 3)}
+                        {renderCard('Cost Alerts', stats.operations?.costAlerts || 0, 'FinOps Agent', 'text-orange-600', 'bg-orange-50', <DollarSign className="w-4 h-4 mr-1.5" />, 0)}
+                        {renderCard('Invoices', stats.operations?.invoicesProcessed || 0, 'FinOps Agent', 'text-blue-600', 'bg-blue-50', <CheckCircle className="w-4 h-4 mr-1.5" />, 1)}
+                        {renderCard('Threat Alerts', stats.operations?.competitorAlerts || 0, 'Intel Agent', 'text-rose-600', 'bg-rose-50', <Shield className="w-4 h-4 mr-1.5" />, 2)}
+                        {renderCard('Active Threats', stats.operations?.activeThreats || 0, 'Tracked in Memory', 'text-rose-600', 'bg-rose-50', <AlertCircle className="w-4 h-4 mr-1.5" />, 3)}
                     </div>
                 </div>
             )}
@@ -205,10 +203,10 @@ export default function PipelinePage() {
             {activeTab === 'engineering' && (
                 <div className="space-y-8 animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {renderCard('Deploys', stats.engineering?.deployEvents || 0, 'DevOps Agent', 'text-sky-600', <Zap className="w-4 h-4 mr-1.5" />, 0)}
-                        {renderCard('Cron Execs', stats.engineering?.cronJobsRun || 0, 'Fleet Core', 'text-slate-600', <Clock className="w-4 h-4 mr-1.5" />, 1)}
-                        {renderCard('Assessments', stats.engineering?.selfAssessments || 0, 'AI-Eng Agent', 'text-violet-600', <Search className="w-4 h-4 mr-1.5" />, 2)}
-                        {renderCard('Prompt Edits', stats.engineering?.promptsImproved || 0, 'AI-Eng Agent', 'text-purple-600', <Activity className="w-4 h-4 mr-1.5" />, 3)}
+                        {renderCard('Deploys', stats.engineering?.deployEvents || 0, 'DevOps Agent', 'text-sky-600', 'bg-sky-50', <Zap className="w-4 h-4 mr-1.5" />, 0)}
+                        {renderCard('Cron Execs', stats.engineering?.cronJobsRun || 0, 'Fleet Core', 'text-slate-600', 'bg-slate-50', <Clock className="w-4 h-4 mr-1.5" />, 1)}
+                        {renderCard('Assessments', stats.engineering?.selfAssessments || 0, 'AI-Eng Agent', 'text-violet-600', 'bg-violet-50', <Search className="w-4 h-4 mr-1.5" />, 2)}
+                        {renderCard('Prompt Edits', stats.engineering?.promptsImproved || 0, 'AI-Eng Agent', 'text-purple-600', 'bg-purple-50', <Activity className="w-4 h-4 mr-1.5" />, 3)}
                     </div>
                 </div>
             )}

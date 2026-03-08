@@ -8,13 +8,31 @@ export interface AgentMeta {
     lightGlow: string;
 }
 
-export const TEAMS: Record<AgentTeam, { label: string; colorClass: string; icon: string; borderClass: string; bgClass: string; textClass: string }> = {
+export interface TeamMeta {
+    label: string;
+    colorClass: string;
+    icon: string;
+    borderClass: string;
+    bgClass: string;
+    textClass: string;
+    /** Solid background variant (no opacity), e.g. 'bg-emerald-50' */
+    bgSolidClass: string;
+    /** Border variant for active/selected states, e.g. 'border-emerald-200' */
+    borderActiveClass: string;
+    /** Ring color for focus/active rings, e.g. 'ring-emerald-500' */
+    ringClass: string;
+}
+
+export const TEAMS: Record<AgentTeam, TeamMeta> = {
     sales: {
         label: 'Sales',
         colorClass: 'bg-emerald-500',
         borderClass: 'border-emerald-200/50',
         bgClass: 'bg-emerald-50/30',
+        bgSolidClass: 'bg-emerald-50',
         textClass: 'text-emerald-700',
+        borderActiveClass: 'border-emerald-200',
+        ringClass: 'ring-emerald-500',
         icon: '💰'
     },
     marketing: {
@@ -22,7 +40,10 @@ export const TEAMS: Record<AgentTeam, { label: string; colorClass: string; icon:
         colorClass: 'bg-indigo-500',
         borderClass: 'border-indigo-200/50',
         bgClass: 'bg-indigo-50/30',
+        bgSolidClass: 'bg-indigo-50',
         textClass: 'text-indigo-700',
+        borderActiveClass: 'border-indigo-200',
+        ringClass: 'ring-indigo-500',
         icon: '📢'
     },
     operations: {
@@ -30,7 +51,10 @@ export const TEAMS: Record<AgentTeam, { label: string; colorClass: string; icon:
         colorClass: 'bg-amber-500',
         borderClass: 'border-amber-200/50',
         bgClass: 'bg-amber-50/30',
+        bgSolidClass: 'bg-amber-50',
         textClass: 'text-amber-700',
+        borderActiveClass: 'border-amber-200',
+        ringClass: 'ring-amber-500',
         icon: '⚙️'
     },
     engineering: {
@@ -38,10 +62,16 @@ export const TEAMS: Record<AgentTeam, { label: string; colorClass: string; icon:
         colorClass: 'bg-sky-500',
         borderClass: 'border-sky-200/50',
         bgClass: 'bg-sky-50/30',
+        bgSolidClass: 'bg-sky-50',
         textClass: 'text-sky-700',
+        borderActiveClass: 'border-sky-200',
+        ringClass: 'ring-sky-500',
         icon: '🛠️'
     },
 };
+
+/** Typed array of team IDs to avoid repeated `Object.keys(TEAMS) as AgentTeam[]` casts */
+export const TEAM_IDS: AgentTeam[] = Object.keys(TEAMS) as AgentTeam[];
 
 export const AGENTS: Record<string, AgentMeta> = {
     leadgen: { emoji: '🔍', team: 'sales', heartbeat: 'Every 1h', color: 'bg-emerald-500', lightGlow: 'shadow-[0_0_15px_rgba(16,185,129,0.15)]' },

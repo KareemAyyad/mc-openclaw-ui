@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Activity, MessageSquare, ArrowRight, BookOpen, AlertCircle, FileJson, Layers, Database } from 'lucide-react';
-import { TEAMS, AGENTS, AgentTeam } from '@/lib/agentRegistry';
+import { TEAMS, AGENTS, TEAM_IDS, AgentTeam } from '@/lib/agentRegistry';
 
 interface SchemaDef {
     id: string;
@@ -56,6 +56,24 @@ export default function CommsPage() {
         return acc;
     }, {} as Record<string, SchemaDef[]>);
 
+    const renderAgentNode = (agentId: string, badge: string, label: string) => {
+        const agentMeta = AGENTS[agentId];
+        const teamMeta = agentMeta ? TEAMS[agentMeta.team] : null;
+        return (
+            <div className="flex flex-col items-center">
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-md border mb-3 relative ${teamMeta
+                        ? `${teamMeta.bgSolidClass} ${teamMeta.borderActiveClass}`
+                        : 'bg-slate-100 border-slate-200'
+                    }`}>
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 font-bold text-xs text-slate-500">{badge}</div>
+                    {agentMeta?.emoji || '🤖'}
+                </div>
+                <span className="font-bold text-slate-900 capitalize">{agentId}</span>
+                <span className="text-xs text-slate-500">{label}</span>
+            </div>
+        );
+    };
+
     return (
         <div className="p-8 pb-20 max-w-7xl mx-auto min-h-screen flex flex-col h-screen overflow-hidden">
             <header className="mb-8 animate-fade-in shrink-0">
@@ -78,7 +96,7 @@ export default function CommsPage() {
                     </h2>
 
                     <div className="space-y-6">
-                        {(Object.keys(TEAMS) as AgentTeam[]).map((teamId) => {
+                        {TEAM_IDS.map((teamId) => {
                             const teamSchemas = groupedSchemas[teamId];
                             if (!teamSchemas || teamSchemas.length === 0) return null;
                             const teamMeta = TEAMS[teamId];
@@ -86,7 +104,7 @@ export default function CommsPage() {
                             return (
                                 <div key={teamId} className="animate-fade-in">
                                     <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 ml-2 flex items-center">
-                                        <span className={`w-2 h-2 rounded-full mr-2 ${teamMeta.bgClass.replace('/30', '')}`}></span>
+                                        <span className={`w-2 h-2 rounded-full mr-2 ${teamMeta.colorClass}`}></span>
                                         {teamMeta.label} Origin
                                     </div>
                                     <div className="space-y-2">
@@ -97,7 +115,7 @@ export default function CommsPage() {
                                                     key={schema.id}
                                                     onClick={() => setSelectedSchema(schema.id)}
                                                     className={`w-full text-left p-3 rounded-xl border transition-all ${isActive
-                                                            ? `bg-white border-${teamMeta.colorClass.split('-')[1]}-200 shadow-md ring-1 ring-${teamMeta.colorClass.split('-')[1]}-500 flex-1`
+                                                            ? `bg-white ${teamMeta.borderActiveClass} shadow-md ring-1 ${teamMeta.ringClass} flex-1`
                                                             : 'bg-slate-50 border-transparent hover:bg-slate-100 hover:border-slate-200'
                                                         }`}
                                                 >
@@ -136,22 +154,12 @@ export default function CommsPage() {
 
                             <div className="flex items-center justify-center gap-6">
                                 {/* Sender Agent */}
-                                <div className="flex flex-col items-center">
-                                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-md border mb-3 relative ${AGENTS[activeSchema.sender]
-                                            ? TEAMS[AGENTS[activeSchema.sender].team].bgClass.replace('/30', '') + ' border-' + TEAMS[AGENTS[activeSchema.sender].team].colorClass.split('-')[1] + '-200'
-                                            : 'bg-slate-100 border-slate-200'
-                                        }`}>
-                                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 font-bold text-xs text-slate-500">TX</div>
-                                        {AGENTS[activeSchema.sender]?.emoji || '🤖'}
-                                    </div>
-                                    <span className="font-bold text-slate-900 capitalize">{activeSchema.sender}</span>
-                                    <span className="text-xs text-slate-500">Sender Component</span>
-                                </div>
+                                {renderAgentNode(activeSchema.sender, 'TX', 'Sender Component')}
 
                                 {/* Flow Node */}
                                 <div className="flex flex-col items-center flex-1 px-4 relative">
                                     <div className="w-full h-px bg-slate-200 absolute top-1/2 -translate-y-1/2 -z-10"></div>
-                                    <div className="w-full h-px bg-mc-accent absolute top-1/2 -translate-y-1/2 -z-0 scale-x-0 origin-left animate-[scale-x_1s_ease-out_forwards]"></div>
+                                    <div className="w-full h-px bg-mc-accent absolute top-1/2 -translate-y-1/2 -z-0 scale-x-0 origin-left animate-scale-x"></div>
                                     <div className="bg-white border-2 border-mc-accent shadow-sm px-4 py-2 rounded-full flex items-center gap-2 z-10 animate-fade-in">
                                         <Layers className="w-4 h-4 text-mc-accent" />
                                         <span className="font-mono text-sm font-bold text-slate-800">{activeSchema.type}</span>
@@ -160,17 +168,7 @@ export default function CommsPage() {
                                 </div>
 
                                 {/* Receiver Agent */}
-                                <div className="flex flex-col items-center">
-                                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-md border mb-3 relative ${AGENTS[activeSchema.receiver]
-                                            ? TEAMS[AGENTS[activeSchema.receiver].team].bgClass.replace('/30', '') + ' border-' + TEAMS[AGENTS[activeSchema.receiver].team].colorClass.split('-')[1] + '-200'
-                                            : 'bg-slate-100 border-slate-200'
-                                        }`}>
-                                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 font-bold text-xs text-slate-500">RX</div>
-                                        {AGENTS[activeSchema.receiver]?.emoji || '🤖'}
-                                    </div>
-                                    <span className="font-bold text-slate-900 capitalize">{activeSchema.receiver}</span>
-                                    <span className="text-xs text-slate-500">Receiver Component</span>
-                                </div>
+                                {renderAgentNode(activeSchema.receiver, 'RX', 'Receiver Component')}
                             </div>
                         </div>
                     ) : null}
@@ -203,13 +201,6 @@ export default function CommsPage() {
                 </div>
             </div>
 
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                @keyframes scale-x {
-                    from { transform: scaleX(0); }
-                    to { transform: scaleX(1); }
-                }
-            `}} />
         </div>
     );
 }

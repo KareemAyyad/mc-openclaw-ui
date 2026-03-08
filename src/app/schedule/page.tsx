@@ -2,7 +2,7 @@
 
 import { Calendar, Clock, ArrowRight, Activity, Zap, Shield, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { TEAMS, AGENTS, AgentTeam } from '@/lib/agentRegistry';
+import { TEAMS, AGENTS, TEAM_IDS, AgentTeam } from '@/lib/agentRegistry';
 
 interface CronJob {
   time: string;
@@ -96,14 +96,14 @@ export default function SchedulePage() {
             >
               All Teams
             </button>
-            {(Object.keys(TEAMS) as AgentTeam[]).map((teamId) => {
+            {TEAM_IDS.map((teamId) => {
               const meta = TEAMS[teamId];
               const isActive = activeTeam === teamId;
               return (
                 <button
                   key={teamId}
                   onClick={() => setActiveTeam(teamId)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center ${isActive ? meta.bgClass + ' ' + meta.textClass + ' ring-2 ring-offset-1 ring-' + meta.bgClass.split('-')[1] + '-500' : 'bg-white border text-slate-600 hover:bg-slate-50'}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center ${isActive ? `${meta.bgClass} ${meta.textClass} ring-2 ring-offset-1 ${meta.ringClass}` : 'bg-white border text-slate-600 hover:bg-slate-50'}`}
                 >
                   <span className="mr-1.5">{meta.icon}</span>
                   {meta.label}
@@ -144,7 +144,7 @@ export default function SchedulePage() {
                   </div>
 
                   {/* Timeline Dot */}
-                  <div className={`absolute left-16 w-3 h-3 rounded-full bg-white border-2 border-slate-300 mt-4 -translate-x-1.5 transition-colors shadow-sm ${teamMeta ? `group-hover:border-${teamMeta.bgClass.split('-')[1]}-500 group-hover:bg-${teamMeta.bgClass.split('-')[1]}-500` : 'group-hover:border-mc-accent group-hover:bg-mc-accent'}`} />
+                  <div className="absolute left-16 w-3 h-3 rounded-full bg-white border-2 border-slate-300 mt-4 -translate-x-1.5 transition-colors shadow-sm group-hover:border-mc-accent group-hover:bg-mc-accent" />
 
                   {/* Card */}
                   <div className={`flex-1 ml-6 p-5 rounded-2xl border transition-transform group-hover:-translate-y-1 group-hover:shadow-md ${bgClass} ${borderClass}`}>
