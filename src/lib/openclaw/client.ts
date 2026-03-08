@@ -4,6 +4,7 @@ import { EventEmitter } from 'events';
 import type { OpenClawMessage, OpenClawSessionInfo } from '../types';
 import { loadOrCreateDeviceIdentity, signDevicePayload, buildDeviceAuthPayload, publicKeyRawBase64Url } from './device-identity';
 import { createHash } from 'crypto';
+import { calculateReconnectDelay } from '../reconnect';
 
 // Types for gateway model discovery (matches OpenClaw models.list response)
 export interface GatewayModelChoice {
@@ -259,10 +260,10 @@ export class OpenClawClient extends EventEmitter {
             const isRpcResponse = data.type === 'res' ||
               (data.id !== undefined && this.pendingRequests.has(data.id));
 
-            if (!isRpcResponse) {
-              // Generate unique event ID using content hashing for proper deduplication
-              const eventId = this.generateEventId(data);
+            // Generate event ID once for non-RPC messages (avoids double SHA-256)
+            const eventId = isRpcResponse ? null : this.generateEventId(data);
 
+            if (!isRpcResponse && eventId) {
               // Skip if we've already processed this event (using global cache for all instances)
               if (globalProcessedEvents.has(eventId)) {
                 console.log('[OpenClaw] Skipping duplicate event:', eventId.slice(0, 16));
@@ -270,14 +271,15 @@ export class OpenClawClient extends EventEmitter {
               }
 
               // Mark this event as processed in the global cache with current timestamp for LRU
-              const now = Date.now();
-              globalProcessedEvents.set(eventId, now);
+              globalProcessedEvents.set(eventId, Date.now());
 
-              // Perform LRU cleanup if cache size exceeds limit
-              this.performCacheCleanup();
+              // Only cleanup when cache exceeds limit (periodic timer handles routine cleanup)
+              if (globalProcessedEvents.size > this.MAX_PROCESSED_EVENTS) {
+                this.performCacheCleanup();
+              }
             }
 
-            console.log('[OpenClaw] Received:', data.type === 'res' ? `res:${String(data.id).slice(0, 8)}` : this.generateEventId(data).slice(0, 16));
+            console.log('[OpenClaw] Received:', data.type === 'res' ? `res:${String(data.id).slice(0, 8)}` : eventId!.slice(0, 16));
 
             // Handle challenge-response authentication (OpenClaw RequestFrame format)
             if (data.type === 'event' && data.event === 'connect.challenge') {
@@ -422,8 +424,7 @@ export class OpenClawClient extends EventEmitter {
     if (this.reconnectTimer || !this.autoReconnect) return;
 
     this.reconnectAttempts++;
-    const baseDelay = Math.min(5000 * Math.pow(2, this.reconnectAttempts - 1), this.MAX_RECONNECT_DELAY);
-    const delay = baseDelay + Math.random() * 1000; // Add jitter
+    const delay = calculateReconnectDelay(this.reconnectAttempts, this.MAX_RECONNECT_DELAY);
 
     console.log(`[OpenClaw] Scheduling reconnect in ${Math.round(delay / 1000)}s (attempt ${this.reconnectAttempts})`);
 

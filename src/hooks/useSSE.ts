@@ -8,13 +8,13 @@
 import { useEffect, useRef } from 'react';
 import { useMissionControl } from '@/lib/store';
 import { debug } from '@/lib/debug';
+import { calculateReconnectDelay } from '@/lib/reconnect';
 import type { SSEEvent, Task } from '@/lib/types';
 
 export function useSSE() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttemptsRef = useRef(0);
-  const MAX_RECONNECT_DELAY = 60000; // 60 seconds max
   // Use ref to track selectedTask ID without causing re-renders
   const selectedTaskIdRef = useRef<string | undefined>();
   const {
@@ -134,9 +134,7 @@ export function useSSE() {
 
         // Exponential backoff: 5s, 10s, 20s, 40s, 60s max (with jitter)
         reconnectAttemptsRef.current++;
-        const baseDelay = Math.min(5000 * Math.pow(2, reconnectAttemptsRef.current - 1), MAX_RECONNECT_DELAY);
-        const jitter = Math.random() * 1000; // 0-1s jitter to prevent thundering herd
-        const delay = baseDelay + jitter;
+        const delay = calculateReconnectDelay(reconnectAttemptsRef.current);
         debug.sse(`Reconnecting in ${Math.round(delay / 1000)}s (attempt ${reconnectAttemptsRef.current})`);
 
         reconnectTimeoutRef.current = setTimeout(() => {

@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import JSON5 from 'json5';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ConfigFleet');
 
 /**
  * Reads the actual openclaw.json config from the local workspace to serve
@@ -14,16 +17,20 @@ export async function GET() {
         const openclawConfigPath = process.env.OPENCLAW_CONFIG_PATH
             || path.join(process.cwd(), '..', 'openclaw-kareem', 'openclaw.json');
 
-        if (!fs.existsSync(openclawConfigPath)) {
-            console.warn(`[Config API] openclaw.json not found at ${openclawConfigPath}`);
-      return NextResponse.json({ 
-        error: 'openclaw.json not found', 
-        path: openclawConfigPath,
-        fallbackData: true 
-      });
+    let rawConfig: string;
+    try {
+      rawConfig = fs.readFileSync(openclawConfigPath, 'utf8');
+    } catch (err: any) {
+      if (err.code === 'ENOENT') {
+        log.warn('openclaw.json not found', { path: openclawConfigPath });
+        return NextResponse.json({
+          error: 'openclaw.json not found',
+          path: openclawConfigPath,
+          fallbackData: true
+        });
+      }
+      throw err;
     }
-
-    const rawConfig = fs.readFileSync(openclawConfigPath, 'utf8');
     const config = JSON5.parse(rawConfig);
 
     const agentList = config.agents?.list || {};
@@ -62,7 +69,7 @@ export async function GET() {
     return NextResponse.json({ fleet, source: openclawConfigPath });
 
   } catch (error: any) {
-    console.error('[Config API] Error parsing openclaw.json:', error);
+    log.error('Error parsing openclaw.json', error);
     return NextResponse.json({ error: error.message, fallbackData: true }, { status: 500 });
   }
 }

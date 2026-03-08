@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { AGENTS, TEAMS } from '@/lib/agentRegistry';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ConfigCron');
 
 /**
  * Reads the actual cron-setup.sh script from the local workspace to serve
@@ -11,16 +15,20 @@ export async function GET() {
     const cronScriptPath = process.env.CRON_SCRIPT_PATH
       || path.join(process.cwd(), '..', 'openclaw-kareem', 'scripts', 'cron-setup.sh');
 
-    if (!fs.existsSync(cronScriptPath)) {
-      console.warn(`[Config API] cron-setup.sh not found at ${cronScriptPath}`);
-      return NextResponse.json({
-        error: 'cron-setup.sh not found',
-        path: cronScriptPath,
-        fallbackData: true
-      });
+    let scriptContent: string;
+    try {
+      scriptContent = fs.readFileSync(cronScriptPath, 'utf8');
+    } catch (err: any) {
+      if (err.code === 'ENOENT') {
+        log.warn('cron-setup.sh not found', { path: cronScriptPath });
+        return NextResponse.json({
+          error: 'cron-setup.sh not found',
+          path: cronScriptPath,
+          fallbackData: true
+        });
+      }
+      throw err;
     }
-
-    const scriptContent = fs.readFileSync(cronScriptPath, 'utf8');
 
     // We will parse the bash script by looking for `openclaw cron add` commands
     // and extracting the relevant flags via Regex.
@@ -82,16 +90,9 @@ export async function GET() {
         // Basic dedup
         runDays = Array.from(new Set(runDays));
 
-        // Assign visual styling based on agent
-        const colorMap: Record<string, string> = {
-          'leadgen': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-          'outbound': 'bg-blue-50 text-blue-700 border-blue-200',
-          'content': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-          'intel': 'bg-purple-50 text-purple-700 border-purple-200',
-          'onboarding': 'bg-amber-50 text-amber-700 border-amber-200',
-          'fundraise': 'bg-rose-50 text-rose-700 border-rose-200',
-        };
-
+        // Derive visual styling from centralized agent registry
+        const agentMeta = AGENTS[agent.toLowerCase()];
+        const teamMeta = agentMeta ? TEAMS[agentMeta.team] : null;
         const fallbackColor = 'bg-slate-50 text-slate-700 border-slate-200';
 
         jobs.push({
@@ -101,7 +102,7 @@ export async function GET() {
           agentId: agent.toLowerCase(),
           task: name,
           cronExpression,
-          color: colorMap[agent.toLowerCase()] || fallbackColor
+          color: teamMeta ? `${teamMeta.bgClass} ${teamMeta.textClass} ${teamMeta.borderClass}` : fallbackColor
         });
       }
     }
@@ -109,7 +110,7 @@ export async function GET() {
     return NextResponse.json({ jobs, source: cronScriptPath });
 
   } catch (error: any) {
-    console.error('[Config API] Error parsing cron-setup.sh:', error);
+    log.error('Error parsing cron-setup.sh', error);
     return NextResponse.json({ error: error.message, fallbackData: true }, { status: 500 });
   }
 }

@@ -1,18 +1,26 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getWorkspaceBasePath } from '@/lib/config';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ConfigSchemas');
 
 export async function GET() {
     try {
-        const basePath = process.env.WORKSPACE_BASE_PATH
-            || path.join(process.cwd(), '..', 'openclaw-kareem', 'workspaces');
-
+        const basePath = getWorkspaceBasePath();
         const schemaPath = path.join(basePath, 'SCHEMAS.md');
-        if (!fs.existsSync(schemaPath)) {
-            return NextResponse.json({ error: 'SCHEMAS.md not found' }, { status: 404 });
-        }
 
-        const content = fs.readFileSync(schemaPath, 'utf8');
+        let content: string;
+        try {
+            content = fs.readFileSync(schemaPath, 'utf8');
+        } catch (err: any) {
+            if (err.code === 'ENOENT') {
+                log.warn('SCHEMAS.md not found', { path: schemaPath });
+                return NextResponse.json({ error: 'SCHEMAS.md not found' }, { status: 404 });
+            }
+            throw err;
+        }
 
         // Split by H3 markdown header which denotes a schema
         const blocks = content.split('### `');

@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getWorkspaceBasePath } from '@/lib/config';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Memory');
 
 // This API route securely reads agent memory files from the local openclaw workspace directory.
 // V2 ARCHITECTURE: It now gracefully falls back to streaming the file from the remote Render 
@@ -20,8 +24,7 @@ export async function GET(request: Request) {
     }
 
     // Determine workspace base path
-    const basePath = process.env.WORKSPACE_BASE_PATH
-        || path.join(process.cwd(), '..', 'openclaw-kareem', 'workspaces');
+    const basePath = getWorkspaceBasePath();
 
     const filePath = path.join(basePath, agentId, 'memory', file);
 
@@ -30,11 +33,19 @@ export async function GET(request: Request) {
         let sourceInfo = 'Local Disk';
 
         // 1. ATTEMPT LOCAL READ
-        if (fs.existsSync(filePath)) {
+        let localReadFailed = false;
+        try {
             content = fs.readFileSync(filePath, 'utf-8');
+        } catch (err: any) {
+            if (err.code === 'ENOENT') {
+                localReadFailed = true;
+            } else {
+                throw err;
+            }
         }
+
         // 2. REMOTE FALLBACK VIA OPENCLAW GATEWAY
-        else {
+        if (localReadFailed) {
             const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN;
             const gatewayUrl = process.env.OPENCLAW_GATEWAY_URL || 'https://openclaw-teammates.onrender.com';
 
@@ -80,7 +91,7 @@ export async function GET(request: Request) {
                 content = result.stdout;
                 sourceInfo = 'Remote Render Disk';
             } catch (remoteError) {
-                console.error('[Remote RPC Error]', remoteError);
+                log.error('Remote RPC Error', remoteError);
                 return NextResponse.json({
                     exists: false,
                     message: 'File not synced locally and OpenClaw Gateway proxy failed. Is the agent currently online or token valid?'
@@ -105,7 +116,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ exists: true, data: content, type: 'text', source: sourceInfo });
 
     } catch (error) {
-        console.error('Error reading memory file:', error);
+        log.error('Error reading memory file', error);
         return NextResponse.json({ error: 'Failed to read file' }, { status: 500 });
     }
 }

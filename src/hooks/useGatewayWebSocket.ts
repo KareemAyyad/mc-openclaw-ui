@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { calculateReconnectDelay, MAX_RECONNECT_DELAY } from '@/lib/reconnect';
 
 type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
@@ -16,7 +17,6 @@ export function useGatewayWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttemptsRef = useRef(0);
-  const MAX_RECONNECT_DELAY = 60000;
 
   const connect = useCallback(() => {
     // Only connect if we have a token (Client-side env fallback or fetched from a secure config endpoint)
@@ -78,8 +78,7 @@ export function useGatewayWebSocket() {
         setStatus('disconnected');
 
         reconnectAttemptsRef.current++;
-        const baseDelay = Math.min(5000 * Math.pow(2, reconnectAttemptsRef.current - 1), MAX_RECONNECT_DELAY);
-        const delay = baseDelay + Math.random() * 1000; // jitter
+        const delay = calculateReconnectDelay(reconnectAttemptsRef.current);
 
         console.log(`Gateway WebSocket scheduling reconnect in ${Math.round(delay / 1000)}s (attempt ${reconnectAttemptsRef.current})`);
         reconnectTimeoutRef.current = setTimeout(connect, delay);
